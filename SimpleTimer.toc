@@ -3,7 +3,8 @@
 ## Notes: A simple countdown timer addon with start/pause/reset functionality
 ## Author: Jhakuzi
 ## Version: 1.1
-## IconTexture: Interface\Icons\spell_mage_altertime
+## IconTexture: Interface\AddOns\SimpleTimer\Media\2-icon
+## AddonCompartmentFunc: SimpleTimer_OnAddonCompartmentClick
 ## SavedVariables: SimpleTimerDB
 
 SimpleTimer.lua

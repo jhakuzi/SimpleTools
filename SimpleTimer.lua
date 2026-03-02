@@ -399,10 +399,6 @@ function SimpleTimer:Initialize()
     self:CreateMainFrame()
     self:LoadVariables()
 
-    if self.InitializeMinimapIcon then
-        self:InitializeMinimapIcon()
-    end
-
     -- Register slash commands
     SLASH_SIMPLETIMER1 = "/timer"
     SLASH_SIMPLETIMER2 = "/simpletimer"
