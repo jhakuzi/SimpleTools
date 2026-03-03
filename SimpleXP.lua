@@ -1,18 +1,18 @@
-local addonName, SimpleTimer = ...
+local addonName, SimpleTools = ...
 
 local GetTime = GetTime
 local UnitXP = UnitXP
 local UnitXPMax = UnitXPMax
 
 -- XP Tracker state
-SimpleTimer.xpRunning = false
-SimpleTimer.xpStartTime = 0
-SimpleTimer.xpElapsedAtPause = 0
-SimpleTimer.xpStartValue = 0
-SimpleTimer.xpMaxAtStart = 0
-SimpleTimer.xpGained = 0
+SimpleTools.xpRunning = false
+SimpleTools.xpStartTime = 0
+SimpleTools.xpElapsedAtPause = 0
+SimpleTools.xpStartValue = 0
+SimpleTools.xpMaxAtStart = 0
+SimpleTools.xpGained = 0
 
-function SimpleTimer:CreateSimpleXPUI(parent)
+function SimpleTools:CreateSimpleXPUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
@@ -49,34 +49,34 @@ function SimpleTimer:CreateSimpleXPUI(parent)
     self.xpProjectButton:SetSize(110, 25)
     self.xpProjectButton:SetPoint("BOTTOM", 0, 10)
     self.xpProjectButton:SetText("Send to screen")
-    self.xpProjectButton:SetScript("OnClick", function() SimpleTimer:ToggleXPProjected() end)
+    self.xpProjectButton:SetScript("OnClick", function() SimpleTools:ToggleXPProjected() end)
 
     -- Start/Pause Button
     self.xpStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.xpStartPauseButton:SetSize(80, 25)
     self.xpStartPauseButton:SetPoint("BOTTOMLEFT", 10, 10)
     self.xpStartPauseButton:SetText("Start")
-    self.xpStartPauseButton:SetScript("OnClick", function() SimpleTimer:ToggleXPTracker() end)
+    self.xpStartPauseButton:SetScript("OnClick", function() SimpleTools:ToggleXPTracker() end)
 
     -- Reset Button
     self.xpResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.xpResetButton:SetSize(80, 25)
     self.xpResetButton:SetPoint("BOTTOMRIGHT", -10, 10)
     self.xpResetButton:SetText("Reset")
-    self.xpResetButton:SetScript("OnClick", function() SimpleTimer:ResetXPTracker() end)
+    self.xpResetButton:SetScript("OnClick", function() SimpleTools:ResetXPTracker() end)
 
     -- Events
     frame:RegisterEvent("PLAYER_XP_UPDATE")
     frame:SetScript("OnEvent", function(self, event, ...)
         if event == "PLAYER_XP_UPDATE" then
-            SimpleTimer:OnXPUpdate()
+            SimpleTools:OnXPUpdate()
         end
     end)
 
     return frame
 end
 
-function SimpleTimer:ToggleXPTracker()
+function SimpleTools:ToggleXPTracker()
     if self.xpRunning then
         self:PauseXPTracker()
     else
@@ -84,7 +84,7 @@ function SimpleTimer:ToggleXPTracker()
     end
 end
 
-function SimpleTimer:StartXPTracker()
+function SimpleTools:StartXPTracker()
     if not self.xpRunning then
         self.xpStartTime = GetTime()
         self.xpStartValue = UnitXP("player") or 0
@@ -95,7 +95,7 @@ function SimpleTimer:StartXPTracker()
     end
 end
 
-function SimpleTimer:PauseXPTracker()
+function SimpleTools:PauseXPTracker()
     if self.xpRunning then
         self.xpElapsedAtPause = self.xpElapsedAtPause + (GetTime() - self.xpStartTime)
         self.xpRunning = false
@@ -104,7 +104,7 @@ function SimpleTimer:PauseXPTracker()
     end
 end
 
-function SimpleTimer:ResetXPTracker()
+function SimpleTools:ResetXPTracker()
     local wasRunning = self.xpRunning
     self.xpRunning = false
     self.xpStartTime = 0
@@ -131,7 +131,7 @@ function SimpleTimer:ResetXPTracker()
     end
 end
 
-function SimpleTimer:OnXPUpdate()
+function SimpleTools:OnXPUpdate()
     if self.xpRunning then
         local currentXP = UnitXP("player") or 0
         local maxXP = UnitXPMax("player") or 1
@@ -154,14 +154,14 @@ function SimpleTimer:OnXPUpdate()
     end
 end
 
-function SimpleTimer:FormatElapsedTime(seconds)
+function SimpleTools:FormatElapsedTime(seconds)
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
     local secs = seconds % 60
     return string.format("%02d:%02d:%02d", hours, minutes, secs)
 end
 
-function SimpleTimer:UpdateXPTracker()
+function SimpleTools:UpdateXPTracker()
     local elapsed = self.xpElapsedAtPause
     if self.xpRunning then
         elapsed = elapsed + (GetTime() - self.xpStartTime)
@@ -211,7 +211,7 @@ function SimpleTimer:UpdateXPTracker()
     end
 end
 
-function SimpleTimer:CreateXPProjectedFrame()
+function SimpleTools:CreateXPProjectedFrame()
     local frame = CreateFrame("Frame", "SimpleXPProjectedFrame", UIParent)
     frame:SetSize(120, 70)
     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -221,7 +221,7 @@ function SimpleTimer:CreateXPProjectedFrame()
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", function(selfObj)
         selfObj:StopMovingOrSizing()
-        SimpleTimer:SaveVariables()
+        SimpleTools:SaveVariables()
     end)
     
     local bg = frame:CreateTexture(nil, "BACKGROUND")
@@ -258,7 +258,7 @@ function SimpleTimer:CreateXPProjectedFrame()
     self.xpProjectedFrame = frame
 end
 
-function SimpleTimer:ToggleXPProjected()
+function SimpleTools:ToggleXPProjected()
     if not self.xpProjectedFrame then
         self:CreateXPProjectedFrame()
     end

@@ -1,18 +1,18 @@
-local addonName, SimpleTimer = ...
+local addonName, SimpleTools = ...
 
 -- Localize WoW API for performance
 local GetTime = GetTime
 local CreateFrame = CreateFrame
 
 -- Timer variables
-SimpleTimer.remainingTime = 0
-SimpleTimer.totalTime = 0
-SimpleTimer.isRunning = false
-SimpleTimer.startTime = 0
+SimpleTools.remainingTime = 0
+SimpleTools.totalTime = 0
+SimpleTools.isRunning = false
+SimpleTools.startTime = 0
 
-function SimpleTimer:SaveVariables()
-    SimpleTimerDB = SimpleTimerDB or {}
-    SimpleTimerDB.timer = {
+function SimpleTools:SaveVariables()
+    SimpleToolsDB = SimpleToolsDB or {}
+    SimpleToolsDB.timer = {
         remainingTime = self.remainingTime,
         totalTime = self.totalTime,
         isRunning = self.isRunning,
@@ -20,13 +20,13 @@ function SimpleTimer:SaveVariables()
     }
     
     -- We also need to save watch and reminder state, but they are in this table's fields
-    SimpleTimerDB.watch = {
+    SimpleToolsDB.watch = {
         running = self.stopwatchRunning,
         startTime = self.stopwatchStartTime,
         elapsedAtPause = self.stopwatchElapsedAtPause
     }
     
-    SimpleTimerDB.reminder = {
+    SimpleToolsDB.reminder = {
         time = self.reminderTime,
         set = self.reminderSet
     }
@@ -34,14 +34,14 @@ function SimpleTimer:SaveVariables()
     local projPoint, projRelativePoint, projX, projY
     if self.xpProjectedFrame then
         projPoint, _, projRelativePoint, projX, projY = self.xpProjectedFrame:GetPoint()
-    elseif SimpleTimerDB and SimpleTimerDB.xp then
-        projPoint = SimpleTimerDB.xp.projPoint
-        projRelativePoint = SimpleTimerDB.xp.projRelativePoint
-        projX = SimpleTimerDB.xp.projX
-        projY = SimpleTimerDB.xp.projY
+    elseif SimpleToolsDB and SimpleToolsDB.xp then
+        projPoint = SimpleToolsDB.xp.projPoint
+        projRelativePoint = SimpleToolsDB.xp.projRelativePoint
+        projX = SimpleToolsDB.xp.projX
+        projY = SimpleToolsDB.xp.projY
     end
 
-    SimpleTimerDB.xp = {
+    SimpleToolsDB.xp = {
         running = self.xpRunning,
         startTime = self.xpStartTime,
         elapsedAtPause = self.xpElapsedAtPause,
@@ -54,17 +54,40 @@ function SimpleTimer:SaveVariables()
         projX = projX,
         projY = projY
     }
+
+    local goldProjPoint, goldProjRelativePoint, goldProjX, goldProjY
+    if self.goldProjectedFrame then
+        goldProjPoint, _, goldProjRelativePoint, goldProjX, goldProjY = self.goldProjectedFrame:GetPoint()
+    elseif SimpleToolsDB and SimpleToolsDB.gold then
+        goldProjPoint = SimpleToolsDB.gold.projPoint
+        goldProjRelativePoint = SimpleToolsDB.gold.projRelativePoint
+        goldProjX = SimpleToolsDB.gold.projX
+        goldProjY = SimpleToolsDB.gold.projY
+    end
+
+    SimpleToolsDB.gold = {
+        running = self.goldRunning,
+        startTime = self.goldStartTime,
+        elapsedAtPause = self.goldElapsedAtPause,
+        startValue = self.goldStartValue,
+        gained = self.goldGained,
+        projected = self.goldProjected,
+        projPoint = goldProjPoint,
+        projRelativePoint = goldProjRelativePoint,
+        projX = goldProjX,
+        projY = goldProjY
+    }
 end
 
-function SimpleTimer:LoadVariables()
-    if not SimpleTimerDB then return end
+function SimpleTools:LoadVariables()
+    if not SimpleToolsDB then return end
     
     -- Load Timer
-    if SimpleTimerDB.timer then
-        self.remainingTime = SimpleTimerDB.timer.remainingTime or 0
-        self.totalTime = SimpleTimerDB.timer.totalTime or 0
-        self.isRunning = SimpleTimerDB.timer.isRunning or false
-        self.startTime = SimpleTimerDB.timer.startTime or 0
+    if SimpleToolsDB.timer then
+        self.remainingTime = SimpleToolsDB.timer.remainingTime or 0
+        self.totalTime = SimpleToolsDB.timer.totalTime or 0
+        self.isRunning = SimpleToolsDB.timer.isRunning or false
+        self.startTime = SimpleToolsDB.timer.startTime or 0
         
         if self.isRunning then
             self.startPauseButton:SetText("Pause")
@@ -79,10 +102,10 @@ function SimpleTimer:LoadVariables()
     end
     
     -- Load Watch
-    if SimpleTimerDB.watch then
-        self.stopwatchRunning = SimpleTimerDB.watch.running or false
-        self.stopwatchStartTime = SimpleTimerDB.watch.startTime or 0
-        self.stopwatchElapsedAtPause = SimpleTimerDB.watch.elapsedAtPause or 0
+    if SimpleToolsDB.watch then
+        self.stopwatchRunning = SimpleToolsDB.watch.running or false
+        self.stopwatchStartTime = SimpleToolsDB.watch.startTime or 0
+        self.stopwatchElapsedAtPause = SimpleToolsDB.watch.elapsedAtPause or 0
         
         if self.stopwatchRunning then
             self.swStartPauseButton:SetText("Pause")
@@ -93,23 +116,23 @@ function SimpleTimer:LoadVariables()
     end
     
     -- Load Reminder
-    if SimpleTimerDB.reminder then
-        self.reminderTime = SimpleTimerDB.reminder.time
-        self.reminderSet = SimpleTimerDB.reminder.set
+    if SimpleToolsDB.reminder then
+        self.reminderTime = SimpleToolsDB.reminder.time
+        self.reminderSet = SimpleToolsDB.reminder.set
         if self.reminderSet and self.reminderTime then
             self.reminderStatus:SetText("Alarm set for: " .. self.reminderTime)
         end
     end
     
     -- Load XP Tracker
-    if SimpleTimerDB.xp then
-        self.xpRunning = SimpleTimerDB.xp.running or false
-        self.xpStartTime = SimpleTimerDB.xp.startTime or 0
-        self.xpElapsedAtPause = SimpleTimerDB.xp.elapsedAtPause or 0
-        self.xpStartValue = SimpleTimerDB.xp.startValue or 0
-        self.xpMaxAtStart = SimpleTimerDB.xp.maxAtStart or 1
-        self.xpGained = SimpleTimerDB.xp.gained or 0
-        self.xpProjected = SimpleTimerDB.xp.projected or false
+    if SimpleToolsDB.xp then
+        self.xpRunning = SimpleToolsDB.xp.running or false
+        self.xpStartTime = SimpleToolsDB.xp.startTime or 0
+        self.xpElapsedAtPause = SimpleToolsDB.xp.elapsedAtPause or 0
+        self.xpStartValue = SimpleToolsDB.xp.startValue or 0
+        self.xpMaxAtStart = SimpleToolsDB.xp.maxAtStart or 1
+        self.xpGained = SimpleToolsDB.xp.gained or 0
+        self.xpProjected = SimpleToolsDB.xp.projected or false
         
         if self.xpRunning then
             self.xpStartPauseButton:SetText("Pause")
@@ -122,19 +145,45 @@ function SimpleTimer:LoadVariables()
         if self.xpProjected then
             self.xpProjected = false
             self:ToggleXPProjected()
-            if self.xpProjectedFrame and SimpleTimerDB.xp.projPoint then
+            if self.xpProjectedFrame and SimpleToolsDB.xp.projPoint then
                 self.xpProjectedFrame:ClearAllPoints()
-                self.xpProjectedFrame:SetPoint(SimpleTimerDB.xp.projPoint, UIParent, SimpleTimerDB.xp.projRelativePoint, SimpleTimerDB.xp.projX, SimpleTimerDB.xp.projY)
+                self.xpProjectedFrame:SetPoint(SimpleToolsDB.xp.projPoint, UIParent, SimpleToolsDB.xp.projRelativePoint, SimpleToolsDB.xp.projX, SimpleToolsDB.xp.projY)
+            end
+        end
+    end
+
+    -- Load Gold Tracker
+    if SimpleToolsDB.gold then
+        self.goldRunning = SimpleToolsDB.gold.running or false
+        self.goldStartTime = SimpleToolsDB.gold.startTime or 0
+        self.goldElapsedAtPause = SimpleToolsDB.gold.elapsedAtPause or 0
+        self.goldStartValue = SimpleToolsDB.gold.startValue or 0
+        self.goldGained = SimpleToolsDB.gold.gained or 0
+        self.goldProjected = SimpleToolsDB.gold.projected or false
+
+        if self.goldRunning then
+            self.goldStartPauseButton:SetText("Pause")
+        elseif self.goldElapsedAtPause > 0 then
+            self.goldStartPauseButton:SetText("Resume")
+        end
+        self:UpdateGoldTracker()
+
+        if self.goldProjected then
+            self.goldProjected = false
+            self:ToggleGoldProjected()
+            if self.goldProjectedFrame and SimpleToolsDB.gold.projPoint then
+                self.goldProjectedFrame:ClearAllPoints()
+                self.goldProjectedFrame:SetPoint(SimpleToolsDB.gold.projPoint, UIParent, SimpleToolsDB.gold.projRelativePoint, SimpleToolsDB.gold.projX, SimpleToolsDB.gold.projY)
             end
         end
     end
 end
 
 -- Create the main frame with tabs
-function SimpleTimer:CreateMainFrame()
+function SimpleTools:CreateMainFrame()
     -- Main frame
-    self.frame = CreateFrame("Frame", "SimpleTimerFrame", UIParent, "BasicFrameTemplateWithInset")
-    self.frame:SetSize(350, 180)
+    self.frame = CreateFrame("Frame", "SimpleToolsFrame", UIParent, "BasicFrameTemplateWithInset")
+    self.frame:SetSize(420, 180)
     self.frame:SetPoint("CENTER")
     self.frame:SetMovable(true)
     self.frame:EnableMouse(true)
@@ -150,13 +199,13 @@ function SimpleTimer:CreateMainFrame()
     -- Tab 1: Timer
     self.tab1 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
     self.tab1:SetSize(80, 20)
-    self.tab1:SetPoint("TOPLEFT", self.frame, "TOP", -170, -35)
+    self.tab1:SetPoint("TOPLEFT", self.frame, "TOP", -205, -35)
     self.tab1:SetText("Timer")
     self.tab1:SetScript("OnClick", function() self:SelectTab(1) end)
 
     -- Tab 2: Stopwatch
     self.tab2 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
-    self.tab2:SetSize(100, 20)
+    self.tab2:SetSize(90, 20)
     self.tab2:SetPoint("LEFT", self.tab1, "RIGHT", 0, 0)
     self.tab2:SetText("Stopwatch")
     self.tab2:SetScript("OnClick", function() self:SelectTab(2) end)
@@ -175,6 +224,13 @@ function SimpleTimer:CreateMainFrame()
     self.tab4:SetText("XP")
     self.tab4:SetScript("OnClick", function() self:SelectTab(4) end)
 
+    -- Tab 5: Gold Tracker
+    self.tab5 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
+    self.tab5:SetSize(80, 20)
+    self.tab5:SetPoint("LEFT", self.tab4, "RIGHT", 0, 0)
+    self.tab5:SetText("Gold")
+    self.tab5:SetScript("OnClick", function() self:SelectTab(5) end)
+
     -- Content Container
     self.contentFrame = CreateFrame("Frame", nil, self.frame)
     self.contentFrame:SetPoint("TOPLEFT", 10, -60)
@@ -185,6 +241,7 @@ function SimpleTimer:CreateMainFrame()
     self.simpleWatchFrame = self:CreateSimpleWatchUI(self.contentFrame)
     self.simpleReminderFrame = self:CreateSimpleReminderUI(self.contentFrame)
     self.simpleXPFrame = self:CreateSimpleXPUI(self.contentFrame)
+    self.simpleGoldFrame = self:CreateSimpleGoldUI(self.contentFrame)
 
     -- Initial Select
     self:SelectTab(1)
@@ -193,16 +250,18 @@ function SimpleTimer:CreateMainFrame()
     self.frame:Hide()
 end
 
-function SimpleTimer:SelectTab(id)
+function SimpleTools:SelectTab(id)
     self.timerFrame:Hide()
     self.simpleWatchFrame:Hide()
     self.simpleReminderFrame:Hide()
     self.simpleXPFrame:Hide()
+    self.simpleGoldFrame:Hide()
     
     self.tab1:Enable()
     self.tab2:Enable()
     self.tab3:Enable()
     self.tab4:Enable()
+    self.tab5:Enable()
 
     if id == 1 then
         self.timerFrame:Show()
@@ -213,13 +272,16 @@ function SimpleTimer:SelectTab(id)
     elseif id == 3 then
         self.simpleReminderFrame:Show()
         self.tab3:Disable()
-    else
+    elseif id == 4 then
         self.simpleXPFrame:Show()
         self.tab4:Disable()
+    elseif id == 5 then
+        self.simpleGoldFrame:Show()
+        self.tab5:Disable()
     end
 end
 
-function SimpleTimer:CreateTimerUI(parent)
+function SimpleTools:CreateTimerUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
@@ -247,27 +309,27 @@ function SimpleTimer:CreateTimerUI(parent)
     self.startPauseButton:SetSize(80, 25)
     self.startPauseButton:SetPoint("BOTTOMLEFT", 10, 10)
     self.startPauseButton:SetText("Start")
-    self.startPauseButton:SetScript("OnClick", function() SimpleTimer:ToggleTimer() end)
+    self.startPauseButton:SetScript("OnClick", function() SimpleTools:ToggleTimer() end)
 
     -- Reset button
     self.resetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.resetButton:SetSize(80, 25)
     self.resetButton:SetPoint("BOTTOMRIGHT", -10, 10)
     self.resetButton:SetText("Reset")
-    self.resetButton:SetScript("OnClick", function() SimpleTimer:ResetTimer() end)
+    self.resetButton:SetScript("OnClick", function() SimpleTools:ResetTimer() end)
 
     return frame
 end
 
 -- Format time as MM:SS
-function SimpleTimer:FormatTime(seconds)
+function SimpleTools:FormatTime(seconds)
     local minutes = math.floor(seconds / 60)
     local secs = seconds % 60
     return string.format("%02d:%02d", minutes, secs)
 end
 
 -- Update timer display
-function SimpleTimer:UpdateDisplay()
+function SimpleTools:UpdateDisplay()
     local displayTime = self.remainingTime
     if self.isRunning then
         local elapsed = GetTime() - self.startTime
@@ -282,10 +344,10 @@ function SimpleTimer:UpdateDisplay()
 end
 
 -- Start the timer
-function SimpleTimer:StartTimer()
+function SimpleTools:StartTimer()
     local duration = tonumber(self.durationInput:GetText())
     if not duration or duration <= 0 then
-        print("SimpleTimer: Please enter a valid duration in minutes.")
+        print("SimpleTools: Please enter a valid duration in minutes.")
         return
     end
 
@@ -299,7 +361,7 @@ function SimpleTimer:StartTimer()
 end
 
 -- Pause the timer
-function SimpleTimer:PauseTimer()
+function SimpleTools:PauseTimer()
     if self.isRunning then
         -- Calculate remaining time when paused
         local elapsed = GetTime() - self.startTime
@@ -311,7 +373,7 @@ function SimpleTimer:PauseTimer()
 end
 
 -- Resume the timer
-function SimpleTimer:ResumeTimer()
+function SimpleTools:ResumeTimer()
     if not self.isRunning and self.remainingTime > 0 then
         self.startTime = GetTime()
         self.isRunning = true
@@ -321,7 +383,7 @@ function SimpleTimer:ResumeTimer()
 end
 
 -- Reset the timer
-function SimpleTimer:ResetTimer()
+function SimpleTools:ResetTimer()
     self.isRunning = false
     self.remainingTime = 0
     self.startTime = 0
@@ -331,7 +393,7 @@ function SimpleTimer:ResetTimer()
 end
 
 -- Toggle timer (start/pause/resume)
-function SimpleTimer:ToggleTimer()
+function SimpleTools:ToggleTimer()
     if not self.isRunning then
         if self.remainingTime > 0 then
             self:ResumeTimer()
@@ -344,7 +406,7 @@ function SimpleTimer:ToggleTimer()
 end
 
 -- Update timer on each frame
-function SimpleTimer:OnUpdate(elapsed)
+function SimpleTools:OnUpdate(elapsed)
     self.lastUpdate = (self.lastUpdate or 0) + elapsed
 
     -- Only update once per 0.1s for smoother stopwatch, but timer logic can check every 1s
@@ -371,6 +433,11 @@ function SimpleTimer:OnUpdate(elapsed)
             self:UpdateXPTracker()
         end
 
+        -- Gold Tracker Logic
+        if self.goldRunning then
+            self:UpdateGoldTracker()
+        end
+
         -- Check Reminder
         self:CheckReminder()
 
@@ -379,42 +446,42 @@ function SimpleTimer:OnUpdate(elapsed)
 end
 
 -- Handle timer completion
-function SimpleTimer:TimerFinished()
+function SimpleTools:TimerFinished()
     self:ResetTimer()
 
     -- Play sound or show notification
     PlaySound(8960, "Master")
 
     -- You could add more notification options here
-    print("SimpleTimer: Timer finished!")
+    print("SimpleTools: Timer finished!")
 end
 
 -- Toggle the timer window
-function SimpleTimer:ToggleWindow()
+function SimpleTools:ToggleWindow()
     self.frame:SetShown(not self.frame:IsShown())
 end
 
 -- Initialize the addon
-function SimpleTimer:Initialize()
+function SimpleTools:Initialize()
     self:CreateMainFrame()
     self:LoadVariables()
 
     -- Register slash commands
-    SLASH_SIMPLETIMER1 = "/timer"
-    SLASH_SIMPLETIMER2 = "/simpletimer"
-    SlashCmdList["SIMPLETIMER"] = function() self:ToggleWindow() end
+    SLASH_SIMPLETOOLS1 = "/tools"
+    SLASH_SIMPLETOOLS2 = "/simpletools"
+    SlashCmdList["SIMPLETOOLS"] = function() self:ToggleWindow() end
 
     -- Set up update handler
     self.updateFrame = CreateFrame("Frame")
     self.updateFrame:SetScript("OnUpdate", function(_, elapsed) self:OnUpdate(elapsed) end)
 
-    print("SimpleTimer loaded! Use /timer to toggle the timer window.")
+    print("SimpleTools loaded! Use /timer to toggle the timer window.")
 end
 
 -- Event handler
 local function OnEvent(self, event, ...)
-    if event == "ADDON_LOADED" and ... == "SimpleTimer" then
-        SimpleTimer:Initialize()
+    if event == "ADDON_LOADED" and ... == "SimpleTools" then
+        SimpleTools:Initialize()
     end
 end
 

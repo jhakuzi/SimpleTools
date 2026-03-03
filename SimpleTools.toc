@@ -1,0 +1,15 @@
+## Interface: 120001
+## Title: SimpleTools
+## Notes: A simple countdown timer addon with start/pause/reset functionality
+## Author: Jhakuzi
+## Version: 1.1
+## IconTexture: Interface\AddOns\SimpleTools\Media\2-icon
+## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
+## SavedVariables: SimpleToolsDB
+
+SimpleTools.lua
+SimpleMinimapIcon.lua
+SimpleWatch.lua
+SimpleReminder.lua
+SimpleXP.lua
+SimpleGold.lua

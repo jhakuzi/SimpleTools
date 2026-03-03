@@ -1,4 +1,4 @@
-local addonName, SimpleTimer = ...
+local addonName, SimpleTools = ...
 
 -- Localize WoW API
 local CreateFrame = CreateFrame
@@ -6,12 +6,12 @@ local date = date
 local PlaySound = PlaySound
 
 -- Reminder variables
-SimpleTimer.reminderTime = nil
-SimpleTimer.reminderSet = false
-SimpleTimer.lastReminderCheck = ""
+SimpleTools.reminderTime = nil
+SimpleTools.reminderSet = false
+SimpleTools.lastReminderCheck = ""
 
 -- Create Reminder UI
-function SimpleTimer:CreateSimpleReminderUI(parent)
+function SimpleTools:CreateSimpleReminderUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
     
@@ -36,7 +36,7 @@ function SimpleTimer:CreateSimpleReminderUI(parent)
     self.remSetButton:SetPoint("TOPLEFT", frame, "CENTER", -85, -20)
     self.remSetButton:SetText("Set")
     self.remSetButton:SetScript("OnClick", function() 
-        SimpleTimer:SetReminder(self.reminderInput:GetText())
+        SimpleTools:SetReminder(self.reminderInput:GetText())
     end)
 
     -- Clear Button
@@ -45,7 +45,7 @@ function SimpleTimer:CreateSimpleReminderUI(parent)
     self.remClearButton:SetPoint("LEFT", self.remSetButton, "RIGHT", 10, 0)
     self.remClearButton:SetText("Clear")
     self.remClearButton:SetScript("OnClick", function() 
-        SimpleTimer:ClearReminder()
+        SimpleTools:ClearReminder()
     end)
     
     -- Status Display
@@ -57,31 +57,31 @@ function SimpleTimer:CreateSimpleReminderUI(parent)
 end
 
 -- Validate and set reminder
-function SimpleTimer:SetReminder(timeStr)
+function SimpleTools:SetReminder(timeStr)
     -- Simple validation regex for HH:MM
     if not timeStr:match("^%d%d:%d%d$") then
-        print("SimpleTimer: Invalid format. Use HH:MM")
+        print("SimpleTools: Invalid format. Use HH:MM")
         return
     end
 
     self.reminderTime = timeStr
     self.reminderSet = true
     self.reminderStatus:SetText("Alarm set for: " .. timeStr)
-    print("SimpleTimer: Alarm set for " .. timeStr)
-    SimpleTimer:SaveVariables()
+    print("SimpleTools: Alarm set for " .. timeStr)
+    SimpleTools:SaveVariables()
 end
 
 -- Clear reminder
-function SimpleTimer:ClearReminder()
+function SimpleTools:ClearReminder()
     self.reminderTime = nil
     self.reminderSet = false
     self.reminderStatus:SetText("No reminder set")
-    print("SimpleTimer: Reminder cleared")
-    SimpleTimer:SaveVariables()
+    print("SimpleTools: Reminder cleared")
+    SimpleTools:SaveVariables()
 end
 
 -- Check reminder loop
-function SimpleTimer:CheckReminder()
+function SimpleTools:CheckReminder()
     if not self.reminderSet or not self.reminderTime then return end
 
     local currentTime = date("%H:%M")
@@ -89,7 +89,7 @@ function SimpleTimer:CheckReminder()
     -- Check if times match and we haven't already fired for this minute
     if currentTime == self.reminderTime and self.lastReminderCheck ~= currentTime then
         PlaySound(8960, "Master") -- Same sound as timer finish
-        print("SimpleTimer: REMINDER! It is " .. currentTime)
+        print("SimpleTools: REMINDER! It is " .. currentTime)
         self.lastReminderCheck = currentTime
         
         -- Optional: clear after firing? Or keep it for next day? 

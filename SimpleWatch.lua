@@ -1,16 +1,16 @@
-local addonName, SimpleTimer = ...
+local addonName, SimpleTools = ...
 
 -- Localize WoW API for performance
 local GetTime = GetTime
 local CreateFrame = CreateFrame
 
 -- Stopwatch variables
-SimpleTimer.stopwatchRunning = false
-SimpleTimer.stopwatchStartTime = 0
-SimpleTimer.stopwatchElapsedAtPause = 0
+SimpleTools.stopwatchRunning = false
+SimpleTools.stopwatchStartTime = 0
+SimpleTools.stopwatchElapsedAtPause = 0
 
 -- Create the Stopwatch UI
-function SimpleTimer:CreateSimpleWatchUI(parent)
+function SimpleTools:CreateSimpleWatchUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
     
@@ -26,20 +26,20 @@ function SimpleTimer:CreateSimpleWatchUI(parent)
     self.swStartPauseButton:SetSize(80, 25)
     self.swStartPauseButton:SetPoint("BOTTOMLEFT", 10, 10)
     self.swStartPauseButton:SetText("Start")
-    self.swStartPauseButton:SetScript("OnClick", function() SimpleTimer:ToggleStopwatch() end)
+    self.swStartPauseButton:SetScript("OnClick", function() SimpleTools:ToggleStopwatch() end)
 
     -- Reset button
     self.swResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.swResetButton:SetSize(80, 25)
     self.swResetButton:SetPoint("BOTTOMRIGHT", -10, 10)
     self.swResetButton:SetText("Reset")
-    self.swResetButton:SetScript("OnClick", function() SimpleTimer:ResetStopwatch() end)
+    self.swResetButton:SetScript("OnClick", function() SimpleTools:ResetStopwatch() end)
 
     return frame
 end
 
 -- Update stopwatch display
-function SimpleTimer:UpdateStopwatch()
+function SimpleTools:UpdateStopwatch()
     if self.stopwatchRunning then
         local currentTime = GetTime()
         local totalElapsed = (currentTime - self.stopwatchStartTime) + self.stopwatchElapsedAtPause
@@ -48,36 +48,36 @@ function SimpleTimer:UpdateStopwatch()
 end
 
 -- Start the stopwatch
-function SimpleTimer:StartStopwatch()
+function SimpleTools:StartStopwatch()
     self.stopwatchStartTime = GetTime()
     self.stopwatchRunning = true
     self.swStartPauseButton:SetText("Pause")
-    SimpleTimer:SaveVariables()
+    SimpleTools:SaveVariables()
 end
 
 -- Pause the stopwatch
-function SimpleTimer:PauseStopwatch()
+function SimpleTools:PauseStopwatch()
     if self.stopwatchRunning then
         local currentTime = GetTime()
         self.stopwatchElapsedAtPause = (currentTime - self.stopwatchStartTime) + self.stopwatchElapsedAtPause
         self.stopwatchRunning = false
         self.swStartPauseButton:SetText("Resume")
-        SimpleTimer:SaveVariables()
+        SimpleTools:SaveVariables()
     end
 end
 
 -- Reset the stopwatch
-function SimpleTimer:ResetStopwatch()
+function SimpleTools:ResetStopwatch()
     self.stopwatchRunning = false
     self.stopwatchStartTime = 0
     self.stopwatchElapsedAtPause = 0
     self.stopwatchDisplay:SetText("00:00")
     self.swStartPauseButton:SetText("Start")
-    SimpleTimer:SaveVariables()
+    SimpleTools:SaveVariables()
 end
 
 -- Toggle stopwatch
-function SimpleTimer:ToggleStopwatch()
+function SimpleTools:ToggleStopwatch()
     if self.stopwatchRunning then
         self:PauseStopwatch()
     else
