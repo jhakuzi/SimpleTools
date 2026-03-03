@@ -10,7 +10,7 @@ A lightweight World of Warcraft addon providing a countdown timer, a stopwatch, 
 - **Countdown**: High-precision countdown from the set time.
 - **Notification**: Plays a sound and prints a message when the timer finishes.
 
-### Watch Tab
+### Stopwatch Tab
 - **Stopwatch**: A count-up timer to track elapsed time.
 - **Independent**: Runs independently of the countdown timer and reminders.
 
@@ -58,7 +58,7 @@ A lightweight World of Warcraft addon providing a countdown timer, a stopwatch, 
 3. Click **Start** to begin.
 
 ### Using the Stopwatch
-1. Select the **Watch** tab.
+1. Select the **Stopwatch** tab.
 2. Click **Start** to begin counting up.
 
 ### Using the Reminder

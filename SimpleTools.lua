@@ -194,7 +194,7 @@ function SimpleTools:CreateMainFrame()
     -- Title
     self.frame.title = self.frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     self.frame.title:SetPoint("TOP", 0, -5)
-    self.frame.title:SetText("Simple Timer")
+    self.frame.title:SetText("SimpleTools")
 
     -- Tab 1: Timer
     self.tab1 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
@@ -475,7 +475,7 @@ function SimpleTools:Initialize()
     self.updateFrame = CreateFrame("Frame")
     self.updateFrame:SetScript("OnUpdate", function(_, elapsed) self:OnUpdate(elapsed) end)
 
-    print("SimpleTools loaded! Use /timer to toggle the timer window.")
+    print("SimpleTools loaded! Use /tools to toggle the window.")
 end
 
 -- Event handler
