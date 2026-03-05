@@ -13,3 +13,4 @@ SimpleWatch.lua
 SimpleReminder.lua
 SimpleXP.lua
 SimpleGold.lua
+SimpleNotepad.lua

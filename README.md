@@ -1,4 +1,3 @@
-
 # SimpleTools
 
 A lightweight World of Warcraft addon providing various tools to improve your gameplay experience.
@@ -18,6 +17,10 @@ A lightweight World of Warcraft addon providing various tools to improve your ga
 - **Daily Alarm**: Set a specific time (HH:MM) to receive a notification.
 - **Format**: Uses standard 24-hour format (e.g., 14:30 for 2:30 PM).
 - **Persistent**: Keeps track of the set time until cleared.
+
+### Notepad Tab
+- **Notes**: Write and save notes directly in the addon.
+- **Persistent**: Notes are saved and persist across game sessions.
 
 ### XP Tab
 - **Projected UI**: Click "Send to screen" to detach a borderless, draggable overlay of the tracker directly onto your game screen.
@@ -47,40 +50,8 @@ A lightweight World of Warcraft addon providing various tools to improve your ga
 
 2. Reload your UI with `/reload` or restart the game.
 
-## Usage
-
-1. Type `/tools` or `/simpletools` in chat to show/hide the main window.
-2. Use the **Tabs** at the top to switch between "Timer", "Stopwatch", "Reminder", "XP", and "Gold".
-
-### Using the Timer
-1. Select the **Timer** tab.
-2. Enter the desired duration in minutes (default is 10).
-3. Click **Start** to begin.
-
-### Using the Stopwatch
-1. Select the **Stopwatch** tab.
-2. Click **Start** to begin counting up.
-
-### Using the Reminder
-1. Select the **Reminder** tab.
-2. Enter the time in **HH:MM** format (e.g., `17:00`).
-3. Click **Set** to activate the alarm.
-4. Click **Clear** to remove the set reminder.
-
-### Using the XP Tracker
-1. Select the **XP** tab.
-2. Click **Start** to begin tracking your experience gains.
-3. Click **Send to screen** to project the tracker text onto your screen. You can left-click and drag this overlay to position it wherever you like.
-4. Use **Pause** to temporarily halt tracking. Use **Reset** to clear the current session data (if the tracker is running, it will automatically restart from zero; if paused, it will remain stopped).
-
-### Using the Gold Tracker
-1. Select the **Gold** tab.
-2. Click **Start** to begin tracking gold changes.
-3. Click **Send to screen** to project gold stats onto your screen.
-4. Use **Pause** to temporarily halt tracking. Use **Reset** to clear the current session.
-
 ## Notes
 
 - The window position is movable - click and drag the title bar.
-- All states (timer, stopwatch, reminder, XP, and gold) are maintained when switching tabs, closing the window, or reloading the UI.
+- All states (timer, stopwatch, reminder, notepad, XP, and gold) are maintained when switching tabs, closing the window, or reloading the UI.
 - Smooth updates (10 times per second) ensure the display remains accurate and responsive.

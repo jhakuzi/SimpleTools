@@ -77,6 +77,10 @@ function SimpleTools:SaveVariables()
         projX = goldProjX,
         projY = goldProjY
     }
+
+    SimpleToolsDB.notepad = {
+        text = self.notepadText
+    }
 end
 
 function SimpleTools:LoadVariables()
@@ -177,13 +181,21 @@ function SimpleTools:LoadVariables()
             end
         end
     end
+
+    -- Load Notepad
+    if SimpleToolsDB.notepad then
+        self.notepadText = SimpleToolsDB.notepad.text or ""
+        if self.notepadEditBox then
+            self.notepadEditBox:SetText(self.notepadText)
+        end
+    end
 end
 
 -- Create the main frame with tabs
 function SimpleTools:CreateMainFrame()
     -- Main frame
     self.frame = CreateFrame("Frame", "SimpleToolsFrame", UIParent, "BasicFrameTemplateWithInset")
-    self.frame:SetSize(420, 180)
+    self.frame:SetSize(510, 220)
     self.frame:SetPoint("CENTER")
     self.frame:SetMovable(true)
     self.frame:EnableMouse(true)
@@ -199,7 +211,7 @@ function SimpleTools:CreateMainFrame()
     -- Tab 1: Timer
     self.tab1 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
     self.tab1:SetSize(80, 20)
-    self.tab1:SetPoint("TOPLEFT", self.frame, "TOP", -205, -35)
+    self.tab1:SetPoint("TOPLEFT", self.frame, "TOP", -245, -35)
     self.tab1:SetText("Timer")
     self.tab1:SetScript("OnClick", function() self:SelectTab(1) end)
 
@@ -231,6 +243,13 @@ function SimpleTools:CreateMainFrame()
     self.tab5:SetText("Gold")
     self.tab5:SetScript("OnClick", function() self:SelectTab(5) end)
 
+    -- Tab 6: Notepad
+    self.tab6 = CreateFrame("Button", nil, self.frame, "GameMenuButtonTemplate")
+    self.tab6:SetSize(80, 20)
+    self.tab6:SetPoint("LEFT", self.tab5, "RIGHT", 0, 0)
+    self.tab6:SetText("Notepad")
+    self.tab6:SetScript("OnClick", function() self:SelectTab(6) end)
+
     -- Content Container
     self.contentFrame = CreateFrame("Frame", nil, self.frame)
     self.contentFrame:SetPoint("TOPLEFT", 10, -60)
@@ -242,6 +261,7 @@ function SimpleTools:CreateMainFrame()
     self.simpleReminderFrame = self:CreateSimpleReminderUI(self.contentFrame)
     self.simpleXPFrame = self:CreateSimpleXPUI(self.contentFrame)
     self.simpleGoldFrame = self:CreateSimpleGoldUI(self.contentFrame)
+    self.simpleNotepadFrame = self:CreateSimpleNotepadUI(self.contentFrame)
 
     -- Initial Select
     self:SelectTab(1)
@@ -256,12 +276,14 @@ function SimpleTools:SelectTab(id)
     self.simpleReminderFrame:Hide()
     self.simpleXPFrame:Hide()
     self.simpleGoldFrame:Hide()
+    self.simpleNotepadFrame:Hide()
     
     self.tab1:Enable()
     self.tab2:Enable()
     self.tab3:Enable()
     self.tab4:Enable()
     self.tab5:Enable()
+    self.tab6:Enable()
 
     if id == 1 then
         self.timerFrame:Show()
@@ -278,6 +300,9 @@ function SimpleTools:SelectTab(id)
     elseif id == 5 then
         self.simpleGoldFrame:Show()
         self.tab5:Disable()
+    elseif id == 6 then
+        self.simpleNotepadFrame:Show()
+        self.tab6:Disable()
     end
 end
 
@@ -287,13 +312,13 @@ function SimpleTools:CreateTimerUI(parent)
 
     -- Duration input label
     local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    durationLabel:SetPoint("TOPLEFT", 10, -10)
+    durationLabel:SetPoint("TOP", -40, -10)
     durationLabel:SetText("Duration (min):")
 
     -- Duration input box
     self.durationInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
     self.durationInput:SetSize(50, 20)
-    self.durationInput:SetPoint("TOPLEFT", 120, -5)
+    self.durationInput:SetPoint("LEFT", durationLabel, "RIGHT", 10, 0)
     self.durationInput:SetAutoFocus(false)
     self.durationInput:SetNumeric(true)
     self.durationInput:SetText("10") -- Default 10 minutes
