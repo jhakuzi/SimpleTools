@@ -49,9 +49,3 @@ A lightweight World of Warcraft addon providing various tools to improve your ga
    - Retail: `World of Warcraft/_retail_/Interface/AddOns/`
 
 2. Reload your UI with `/reload` or restart the game.
-
-## Notes
-
-- The window position is movable - click and drag the title bar.
-- All states (timer, stopwatch, reminder, notepad, XP, and gold) are maintained when switching tabs, closing the window, or reloading the UI.
-- Smooth updates (10 times per second) ensure the display remains accurate and responsive.
