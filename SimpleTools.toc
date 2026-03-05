@@ -2,7 +2,7 @@
 ## Title: SimpleTools
 ## Notes: A lightweight World of Warcraft Addon providing various small tools to improve your gameplay experience.
 ## Author: Jhakuzi
-## Version: 1.2
+## Version: 1.3
 ## IconTexture: Interface\AddOns\SimpleTools\Media\2-icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB
