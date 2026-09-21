@@ -1,86 +1,132 @@
-local addonName, SimpleTools = ...
+local addonName, ST = ...
 
--- Localize WoW API for performance
 local GetTime = GetTime
 local CreateFrame = CreateFrame
 
--- Stopwatch variables
-SimpleTools.stopwatchRunning = false
-SimpleTools.stopwatchStartTime = 0
-SimpleTools.stopwatchElapsedAtPause = 0
-
--- Create the Stopwatch UI
-function SimpleTools:CreateSimpleWatchUI(parent)
+function ST:CreateSimpleWatchUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
-    
     self.stopwatchFrame = frame
 
-    -- Stopwatch display
     self.stopwatchDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
     self.stopwatchDisplay:SetPoint("CENTER", 0, 10)
     self.stopwatchDisplay:SetText("00:00")
 
-    -- Start/Pause button
     self.swStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.swStartPauseButton:SetSize(80, 25)
-    self.swStartPauseButton:SetPoint("BOTTOMLEFT", 10, 10)
     self.swStartPauseButton:SetText("Start")
-    self.swStartPauseButton:SetScript("OnClick", function() SimpleTools:ToggleStopwatch() end)
+    self.swStartPauseButton:SetScript("OnClick", function()
+        ST:ToggleStopwatch()
+    end)
 
-    -- Reset button
+    self.swProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.swProjectButton:SetText("Send to screen")
+    self.swProjectButton:SetScript("OnClick", function()
+        ST:ToggleWatchProjected()
+    end)
+
     self.swResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.swResetButton:SetSize(80, 25)
-    self.swResetButton:SetPoint("BOTTOMRIGHT", -10, 10)
     self.swResetButton:SetText("Reset")
-    self.swResetButton:SetScript("OnClick", function() SimpleTools:ResetStopwatch() end)
+    self.swResetButton:SetScript("OnClick", function()
+        ST:ResetStopwatch()
+    end)
+
+    self:LayoutTrackerButtons(frame, self.swStartPauseButton, self.swProjectButton, self.swResetButton)
 
     return frame
 end
 
--- Update stopwatch display
-function SimpleTools:UpdateStopwatch()
-    if self.stopwatchRunning then
-        local currentTime = GetTime()
-        local totalElapsed = (currentTime - self.stopwatchStartTime) + self.stopwatchElapsedAtPause
-        self.stopwatchDisplay:SetText(self:FormatTime(totalElapsed))
+function ST:StopwatchElapsed()
+    local elapsed = self.watch.elapsed
+    if self.watch.running then
+        elapsed = elapsed + (GetTime() - self.watch.anchor)
+    end
+    return elapsed
+end
+
+function ST:UpdateStopwatch()
+    if not self.stopwatchDisplay then
+        return
+    end
+    local text = self:FormatTime(self:StopwatchElapsed())
+    self.stopwatchDisplay:SetText(text)
+    if self.watchProjTime then
+        self.watchProjTime:SetText(text)
     end
 end
 
--- Start the stopwatch
-function SimpleTools:StartStopwatch()
-    self.stopwatchStartTime = GetTime()
-    self.stopwatchRunning = true
+function ST:StartStopwatch()
+    self.watch.anchor = GetTime()
+    self.watch.running = true
     self.swStartPauseButton:SetText("Pause")
-    SimpleTools:SaveVariables()
+    self:SaveDB()
+    self:RefreshTicker()
 end
 
--- Pause the stopwatch
-function SimpleTools:PauseStopwatch()
-    if self.stopwatchRunning then
-        local currentTime = GetTime()
-        self.stopwatchElapsedAtPause = (currentTime - self.stopwatchStartTime) + self.stopwatchElapsedAtPause
-        self.stopwatchRunning = false
-        self.swStartPauseButton:SetText("Resume")
-        SimpleTools:SaveVariables()
+function ST:PauseStopwatch()
+    if not self.watch.running then
+        return
     end
+    self.watch.elapsed = self:StopwatchElapsed()
+    self.watch.running = false
+    self.swStartPauseButton:SetText("Resume")
+    self:SaveDB()
+    self:RefreshTicker()
+    self:UpdateStopwatch()
 end
 
--- Reset the stopwatch
-function SimpleTools:ResetStopwatch()
-    self.stopwatchRunning = false
-    self.stopwatchStartTime = 0
-    self.stopwatchElapsedAtPause = 0
-    self.stopwatchDisplay:SetText("00:00")
+function ST:ResetStopwatch()
+    self.watch.running = false
+    self.watch.elapsed = 0
+    self.watch.anchor = 0
     self.swStartPauseButton:SetText("Start")
-    SimpleTools:SaveVariables()
+    self:SaveDB()
+    self:RefreshTicker()
+    self:UpdateStopwatch()
 end
 
--- Toggle stopwatch
-function SimpleTools:ToggleStopwatch()
-    if self.stopwatchRunning then
+function ST:ToggleStopwatch()
+    if self.watch.running then
         self:PauseStopwatch()
     else
         self:StartStopwatch()
     end
+end
+
+function ST:CreateWatchProjectedFrame()
+    local frame = self:CreateOverlayFrame("SimpleWatchProjectedFrame", 140, 52, 180, 60, "Stopwatch", function()
+        ST:ShowWatchProjected(false)
+    end)
+    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("TOP", 0, -8)
+    label:SetText("Stopwatch")
+    self.watchProjTime = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self.watchProjTime:SetPoint("TOP", 0, -22)
+    self.watchProjTime:SetText("00:00")
+    self.watchProjectedFrame = frame
+end
+
+function ST:ShowWatchProjected(show, pos)
+    if not self.watchProjectedFrame then
+        self:CreateWatchProjectedFrame()
+    end
+    if show then
+        self:PlaceOverlay(self.watchProjectedFrame, pos)
+        self.watchProjectedFrame:Show()
+        if self.swProjectButton then
+            self.swProjectButton:SetText("Unproject")
+        end
+        self.watch.projected = true
+        self:UpdateStopwatch()
+    else
+        self.watchProjectedFrame:Hide()
+        if self.swProjectButton then
+            self.swProjectButton:SetText("Send to screen")
+        end
+        self.watch.projected = false
+    end
+end
+
+function ST:ToggleWatchProjected()
+    self:ShowWatchProjected(not (self.watchProjectedFrame and self.watchProjectedFrame:IsShown()))
+    self:SaveDB()
 end

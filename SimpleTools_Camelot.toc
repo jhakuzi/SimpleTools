@@ -1,7 +1,6 @@
-## Interface: 120100
-## Interface-Camelot: 16001
+## Interface: 16001
 ## Title: SimpleTools
-## Notes: Timers, XP/gold/gather trackers, reminders, and notes. Midnight and WoW Forever.
+## Notes: Timers, XP/gold/gather trackers, reminders, and notes for WoW Forever.
 ## Author: Jhakuzi
 ## Version: 2.2.1
 ## IconTexture: Interface\AddOns\SimpleTools\Media\2-icon
@@ -9,6 +8,7 @@
 ## SavedVariables: SimpleToolsDB
 ## Category: Miscellaneous
 ## DefaultState: enabled
+## AllowLoadGameType: camelot
 
 Core.lua
 SimpleTools.lua
