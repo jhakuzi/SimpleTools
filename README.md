@@ -1,51 +1,48 @@
-# SimpleTools
+# SimpleTools 2.0
 
-A lightweight World of Warcraft addon providing various tools to improve your gameplay experience.
+Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
+
+Timer, stopwatch, daily reminder, notepad, XP/hr (with rested XP and time-to-level), and gold/hr. Overlays can be sent to the screen and keep running while the window is closed.
+
+## Install
+
+Copy the `SimpleTools` folder into:
+
+```
+World of Warcraft/_retail_/Interface/AddOns/
+```
+
+Forever shares the Mainline `_retail_` AddOns folder. Reload with `/reload`.
+
+If the addon list marks it out of date, the Camelot TOC (`SimpleTools_Camelot.toc`, interface **16001**) is what Forever should load. Midnight uses interface **120100**.
+
+## Commands
+
+| Command | Action |
+| --- | --- |
+| `/tools` `/simpletools` `/st` | Toggle the window |
+| `/tools options` | Open the Settings panel |
+| `/tools resetpos` | Recenter the window |
+
+Esc also closes the window. Left-click the minimap button or the addon compartment entry to toggle; right-click the minimap button for settings.
 
 ## Features
 
-### Timer Tab
-- **Duration Input**: Enter timer duration in minutes.
-- **Countdown**: High-precision countdown from the set time.
-- **Notification**: Plays a sound and prints a message when the timer finishes.
+- **Timer** — countdown in minutes, sound + chat when it ends
+- **Stopwatch** — independent count-up
+- **Reminder** — 24-hour HH:MM alarm, fires once per day until cleared
+- **XP** — gained, XP/hr, time-to-level, rested XP; optional detached overlay
+- **Gold** — session gold and gold/hr; optional detached overlay
+- **Notepad** — notes persist across sessions (saves on debounce, not every key)
 
-### Stopwatch Tab
-- **Stopwatch**: A count-up timer to track elapsed time.
-- **Independent**: Runs independently of the countdown timer and reminders.
+State survives `/reload` and logout. Saved variables migrate from 1.x automatically; running timers are re-anchored because `GetTime()` resets on reload.
 
-### Reminder Tab
-- **Daily Alarm**: Set a specific time (HH:MM) to receive a notification.
-- **Format**: Uses standard 24-hour format (e.g., 14:30 for 2:30 PM).
-- **Persistent**: Keeps track of the set time until cleared.
+## Forever / Midnight notes
 
-### Notepad Tab
-- **Notes**: Write and save notes directly in the addon.
-- **Persistent**: Notes are saved and persist across game sessions.
+Forever uses Mainline’s 12.1.5-era API, including secret values. SimpleTools never reads combat data. XP and gold go through `issecretvalue` guards so a secret return cannot error the Lua VM.
 
-### XP Tab
-- **Projected UI**: Click "Send to screen" to detach a borderless, draggable overlay of the tracker directly onto your game screen.
-- **XP/hr Calculation**: Tracks experience gained over time to calculate an active XP per hour rate.
-- **Time to Level (TTL)**: Estimates the time remaining to reach the next level based on your current XP/hr.
-- **Session Tracking**: Displays total XP gained and elapsed time for the current tracking session.
-- **Controls**: Start, pause, and reset tracking independently of other timers.
+See [CHANGELOG.md](CHANGELOG.md) for the 2.0 refactor.
 
-### Gold Tab
-- **Gold/hr Calculation**: Tracks gold changes over time to calculate gold earned per hour.
-- **Projected UI**: Click "Send to screen" to project gold stats as a draggable overlay.
-- **Session Tracking**: Displays total gold gained (formatted as Xg Ys Zc) and elapsed time.
-- **Controls**: Start, pause, and reset tracking independently of other features.
+## License
 
-### Common Features
-- **Start/Pause/Resume**: Full control over all timing functions.
-- **Reset**: Quickly reset counters to zero.
-- **Chat Command**: Use `/tools` or `/simpletools` to toggle the window.
-- **Movable Window**: Drag the window anywhere on your screen.
-- **Persistent Operation**: All features continue running even when the window is hidden or you switch tabs.
-- **State Persistence**: Timers, stopwatches, reminders, and XP tracking survive UI reloads (`/reload`) and relogging.
-
-## Installation
-
-1. Copy the `SimpleTools` folder into your World of Warcraft addons directory:
-   - Retail: `World of Warcraft/_retail_/Interface/AddOns/`
-
-2. Reload your UI with `/reload` or restart the game.
+Author: Jhakuzi
