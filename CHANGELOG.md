@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.2 — Resizable notes overlay
+
+- The Notepad **Send to screen** overlay can be resized from the bottom-right corner. Size is saved across `/reload`.
+
 ## 2.2.1 — Overlay close on hover
 
 - Projected overlays (Timer, Stopwatch, XP, Gold, Gather, Notes) show a small **x** only while the mouse is over them; click to hide. Trackers keep running.

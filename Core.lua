@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.2.1"
+ST.VERSION = "2.2.2"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -96,6 +96,8 @@ local DEFAULTS = {
         projRelativePoint = "CENTER",
         projX = 260,
         projY = 20,
+        projWidth = 260,
+        projHeight = 200,
     },
 }
 
@@ -393,6 +395,10 @@ function ST:SaveDB()
     db.notepad.projRelativePoint = noteRel
     db.notepad.projX = noteX
     db.notepad.projY = noteY
+    if self.notepadProjectedFrame then
+        db.notepad.projWidth = math.floor((self.notepadProjectedFrame:GetWidth() or 260) + 0.5)
+        db.notepad.projHeight = math.floor((self.notepadProjectedFrame:GetHeight() or 200) + 0.5)
+    end
 
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
@@ -733,7 +739,7 @@ function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, to
         frame:SetScript("OnEnter", function(selfObj)
             GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
             GameTooltip:SetText(tooltipTitle)
-            GameTooltip:AddLine("Drag to move. Hover for × to hide. Close the window — this overlay stays.", 1, 1, 1, true)
+            GameTooltip:AddLine(selfObj.overlayHint or "Drag to move. Hover for × to hide. Close the window — this overlay stays.", 1, 1, 1, true)
             GameTooltip:Show()
         end)
         frame:SetScript("OnLeave", GameTooltip_Hide)
