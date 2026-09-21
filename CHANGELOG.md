@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1 — Overlay close on hover
+
+- Projected overlays (Timer, Stopwatch, XP, Gold, Gather, Notes) show a small **x** only while the mouse is over them; click to hide. Trackers keep running.
+
 ## 2.2.0 — Timer / stopwatch overlays, gather buttons
 
 - **Timer** and **Stopwatch** now have **Send to screen** overlays (countdown / elapsed, drag, persist, keep running with the window closed)

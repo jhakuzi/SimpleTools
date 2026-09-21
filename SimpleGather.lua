@@ -401,7 +401,9 @@ function ST:UpdateGatherTracker()
 end
 
 function ST:CreateGatherProjectedFrame()
-    local frame = self:CreateOverlayFrame("SimpleGatherProjectedFrame", 200, 90, 0, -170, "Gather Tracker")
+    local frame = self:CreateOverlayFrame("SimpleGatherProjectedFrame", 200, 90, 0, -170, "Gather Tracker", function()
+        ST:ShowGatherProjected(false)
+    end)
 
     self.gatherProjNodes = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.gatherProjNodes:SetPoint("TOP", 0, -8)

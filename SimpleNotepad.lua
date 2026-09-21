@@ -54,7 +54,9 @@ function ST:CreateSimpleNotepadUI(parent)
 end
 
 function ST:CreateNotepadProjectedFrame()
-    local frame = self:CreateOverlayFrame("SimpleNotepadProjectedFrame", 260, 200, 260, 20, "Notes")
+    local frame = self:CreateOverlayFrame("SimpleNotepadProjectedFrame", 260, 200, 260, 20, "Notes", function()
+        ST:ShowNotepadProjected(false)
+    end)
 
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 10, -8)

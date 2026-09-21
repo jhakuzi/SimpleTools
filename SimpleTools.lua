@@ -226,7 +226,9 @@ function ST:TimerFinished()
 end
 
 function ST:CreateTimerProjectedFrame()
-    local frame = self:CreateOverlayFrame("SimpleTimerProjectedFrame", 140, 52, 180, 120, "Timer")
+    local frame = self:CreateOverlayFrame("SimpleTimerProjectedFrame", 140, 52, 180, 120, "Timer", function()
+        ST:ShowTimerProjected(false)
+    end)
     local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     label:SetPoint("TOP", 0, -8)
     label:SetText("Timer")

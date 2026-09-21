@@ -93,7 +93,9 @@ function ST:ToggleStopwatch()
 end
 
 function ST:CreateWatchProjectedFrame()
-    local frame = self:CreateOverlayFrame("SimpleWatchProjectedFrame", 140, 52, 180, 60, "Stopwatch")
+    local frame = self:CreateOverlayFrame("SimpleWatchProjectedFrame", 140, 52, 180, 60, "Stopwatch", function()
+        ST:ShowWatchProjected(false)
+    end)
     local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     label:SetPoint("TOP", 0, -8)
     label:SetText("Stopwatch")

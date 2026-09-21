@@ -210,6 +210,10 @@ function ST:CreateGoldProjectedFrame()
     end)
     frame:SetScript("OnLeave", GameTooltip_Hide)
 
+    self:AttachOverlayClose(frame, function()
+        ST:ShowGoldProjected(false)
+    end)
+
     frame:Hide()
     self.goldProjectedFrame = frame
 end

@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.2.0"
+ST.VERSION = "2.2.1"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -714,7 +714,7 @@ function ST:ApplyOverlayBackdrop(frame)
     frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.7)
 end
 
-function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, tooltipTitle)
+function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, tooltipTitle, onClose)
     local frame = CreateFrame("Frame", globalName, UIParent, "BackdropTemplate")
     frame:SetSize(width, height)
     frame:SetPoint("CENTER", UIParent, "CENTER", defaultX or 0, defaultY or 0)
@@ -733,13 +733,76 @@ function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, to
         frame:SetScript("OnEnter", function(selfObj)
             GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
             GameTooltip:SetText(tooltipTitle)
-            GameTooltip:AddLine("Drag to move. Close the window — this overlay stays.", 1, 1, 1, true)
+            GameTooltip:AddLine("Drag to move. Hover for × to hide. Close the window — this overlay stays.", 1, 1, 1, true)
             GameTooltip:Show()
         end)
         frame:SetScript("OnLeave", GameTooltip_Hide)
     end
+    self:AttachOverlayClose(frame, onClose)
     frame:Hide()
     return frame
+end
+
+function ST:AttachOverlayClose(frame, onClose)
+    if not frame or frame.closeButton then
+        return
+    end
+    local close = CreateFrame("Button", nil, frame)
+    close:SetSize(16, 16)
+    close:SetPoint("TOPRIGHT", -2, -2)
+    close:SetFrameLevel(frame:GetFrameLevel() + 5)
+    close:RegisterForClicks("LeftButtonUp")
+    close:Hide()
+
+    local label = close:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("CENTER", 0, 1)
+    label:SetText("x")
+    label:SetTextColor(0.75, 0.75, 0.75)
+    close.label = label
+
+    close:SetScript("OnEnter", function()
+        close:Show()
+        label:SetTextColor(1, 1, 1)
+    end)
+    close:SetScript("OnLeave", function()
+        label:SetTextColor(0.75, 0.75, 0.75)
+        if not frame:IsMouseOver() then
+            close:Hide()
+        end
+    end)
+    close:SetScript("OnClick", function()
+        close:Hide()
+        GameTooltip_Hide()
+        if onClose then
+            onClose()
+        else
+            frame:Hide()
+        end
+        ST:SaveDB()
+    end)
+
+    local prevEnter = frame:GetScript("OnEnter")
+    local prevLeave = frame:GetScript("OnLeave")
+    frame:SetScript("OnEnter", function(selfObj)
+        close:Show()
+        if prevEnter then
+            prevEnter(selfObj)
+        end
+    end)
+    frame:SetScript("OnLeave", function(selfObj)
+        C_Timer.After(0.05, function()
+            if not frame:IsShown() then
+                return
+            end
+            if not frame:IsMouseOver() and not close:IsMouseOver() then
+                close:Hide()
+            end
+        end)
+        if prevLeave then
+            prevLeave(selfObj)
+        end
+    end)
+    frame.closeButton = close
 end
 
 function ST:PlaceOverlay(frame, pos)

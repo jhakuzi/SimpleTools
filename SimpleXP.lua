@@ -284,6 +284,10 @@ function ST:CreateXPProjectedFrame()
     end)
     frame:SetScript("OnLeave", GameTooltip_Hide)
 
+    self:AttachOverlayClose(frame, function()
+        ST:ShowXPProjected(false)
+    end)
+
     frame:Hide()
     self.xpProjectedFrame = frame
 end
