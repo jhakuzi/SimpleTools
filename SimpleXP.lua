@@ -39,28 +39,24 @@ function ST:CreateSimpleXPUI(parent)
     self.xpElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.xpProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.xpProjectButton:SetSize(110, 25)
-    self.xpProjectButton:SetPoint("BOTTOM", 0, 8)
     self.xpProjectButton:SetText("Send to screen")
     self.xpProjectButton:SetScript("OnClick", function()
         ST:ToggleXPProjected()
     end)
 
     self.xpStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.xpStartPauseButton:SetSize(80, 25)
-    self.xpStartPauseButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.xpStartPauseButton:SetText("Start")
     self.xpStartPauseButton:SetScript("OnClick", function()
         ST:ToggleXPTracker()
     end)
 
     self.xpResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.xpResetButton:SetSize(80, 25)
-    self.xpResetButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.xpResetButton:SetText("Reset")
     self.xpResetButton:SetScript("OnClick", function()
         ST:ResetXPTracker()
     end)
+
+    self:LayoutTrackerButtons(frame, self.xpStartPauseButton, self.xpProjectButton, self.xpResetButton)
 
     return frame
 end

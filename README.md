@@ -1,4 +1,4 @@
-# SimpleTools 2.1
+# SimpleTools 2.2
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -28,8 +28,8 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 
 ## Features
 
-- **Timer** — countdown in minutes, sound + chat when it ends
-- **Stopwatch** — independent count-up
+- **Timer** — countdown in minutes, sound + chat when it ends; **Send to screen** overlay
+- **Stopwatch** — independent count-up; **Send to screen** overlay
 - **Reminder** — 24-hour HH:MM alarm, fires once per day until cleared
 - **XP** — gained, XP/hr, time-to-level, rested XP; **Send to screen** overlay
 - **Gold** — session gold and gold/hr; **Send to screen** overlay

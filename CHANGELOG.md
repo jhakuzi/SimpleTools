@@ -1,6 +1,19 @@
 # Changelog
 
+## 2.2.0 — Timer / stopwatch overlays, gather buttons
+
+- **Timer** and **Stopwatch** now have **Send to screen** overlays (countdown / elapsed, drag, persist, keep running with the window closed)
+- Gather / XP / Gold / Timer / Stopwatch buttons are a centered trio: Start · Send to screen · Reset — no overlap with the gather scrollbar
+
 ## 2.1.0 — Overlays, gather, notes HUD
+
+- XP and gold **Send to screen** overlays are unchanged in behavior: drag, persist position, keep ticking with the window closed
+- **Gather** tab: nodes/hr with Start / Pause / Reset
+  - Counts Herb Gathering, Mining, and Skinning casts (`UNIT_SPELLCAST_SUCCEEDED`)
+  - Lists herbs, ores/stones, and leather/hides looted this session (`CHAT_MSG_LOOT`, item class + vanilla ID fallback)
+  - Own **Send to screen** overlay (nodes, rate, breakdown, top items)
+- **Notepad** **Send to screen**: a draggable notes HUD so the main window can close
+- Overlays sit on `HIGH` strata, clamped to screen; positions save on drag stop
 
 - XP and gold **Send to screen** overlays are unchanged in behavior: drag, persist position, keep ticking with the window closed
 - **Gather** tab: nodes/hr with Start / Pause / Reset

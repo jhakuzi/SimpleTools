@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.1.0"
+ST.VERSION = "2.2.0"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -32,8 +32,25 @@ local DEFAULTS = {
         minimapAngle = 200,
         defaultDuration = 10,
     },
-    timer = { remaining = 0, total = 0, running = false },
-    watch = { elapsed = 0, running = false },
+    timer = {
+        remaining = 0,
+        total = 0,
+        running = false,
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 180,
+        projY = 120,
+    },
+    watch = {
+        elapsed = 0,
+        running = false,
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 180,
+        projY = 60,
+    },
     reminder = { time = nil, set = false },
     xp = {
         running = false,
@@ -83,8 +100,8 @@ local DEFAULTS = {
 }
 
 -- Runtime clocks (GetTime is session-local and MUST NOT be persisted)
-ST.timer = { remaining = 0, total = 0, running = false, anchor = 0 }
-ST.watch = { elapsed = 0, running = false, anchor = 0 }
+ST.timer = { remaining = 0, total = 0, running = false, anchor = 0, projected = false }
+ST.watch = { elapsed = 0, running = false, anchor = 0, projected = false }
 ST.xp = {
     running = false,
     elapsed = 0,
@@ -313,9 +330,21 @@ function ST:SaveDB()
     db.timer.remaining = self.timer.remaining
     db.timer.total = self.timer.total
     db.timer.running = self.timer.running
+    local timerPoint, timerRel, timerX, timerY = SnapshotPoint(self.timerProjectedFrame, db.timer)
+    db.timer.projected = self.timer.projected
+    db.timer.projPoint = timerPoint
+    db.timer.projRelativePoint = timerRel
+    db.timer.projX = timerX
+    db.timer.projY = timerY
 
     db.watch.elapsed = self.watch.elapsed
     db.watch.running = self.watch.running
+    local watchPoint, watchRel, watchX, watchY = SnapshotPoint(self.watchProjectedFrame, db.watch)
+    db.watch.projected = self.watch.projected
+    db.watch.projPoint = watchPoint
+    db.watch.projRelativePoint = watchRel
+    db.watch.projX = watchX
+    db.watch.projY = watchY
 
     db.reminder.time = self.reminder.time
     db.reminder.set = self.reminder.set
@@ -412,6 +441,9 @@ function ST:LoadState()
         end
     end
     self:UpdateDisplay()
+    if db.timer.projected and self.ShowTimerProjected then
+        self:ShowTimerProjected(true, db.timer)
+    end
 
     self.watch.elapsed = db.watch.elapsed or 0
     self.watch.running = db.watch.running or false
@@ -425,6 +457,12 @@ function ST:LoadState()
     end
     if self.stopwatchDisplay then
         self.stopwatchDisplay:SetText(self:FormatTime(self.watch.elapsed))
+    end
+    if self.UpdateStopwatch then
+        self:UpdateStopwatch()
+    end
+    if db.watch.projected and self.ShowWatchProjected then
+        self:ShowWatchProjected(true, db.watch)
     end
 
     self.reminder.time = db.reminder.time
@@ -710,4 +748,19 @@ function ST:PlaceOverlay(frame, pos)
     end
     frame:ClearAllPoints()
     frame:SetPoint(pos.projPoint, UIParent, pos.projRelativePoint or "CENTER", pos.projX or 0, pos.projY or 0)
+end
+
+-- Start / Send to screen / Reset as a centered trio so they never overlap
+-- each other or a right-side scrollbar.
+function ST:LayoutTrackerButtons(parent, startBtn, projectBtn, resetBtn)
+    local width, height, gap, bottom = 112, 25, 12, 8
+    startBtn:SetSize(width, height)
+    projectBtn:SetSize(width, height)
+    resetBtn:SetSize(width, height)
+    startBtn:ClearAllPoints()
+    projectBtn:ClearAllPoints()
+    resetBtn:ClearAllPoints()
+    startBtn:SetPoint("BOTTOM", parent, "BOTTOM", -(width + gap), bottom)
+    projectBtn:SetPoint("BOTTOM", parent, "BOTTOM", 0, bottom)
+    resetBtn:SetPoint("BOTTOM", parent, "BOTTOM", (width + gap), bottom)
 end

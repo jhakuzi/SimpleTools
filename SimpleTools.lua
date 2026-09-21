@@ -114,24 +114,28 @@ function ST:CreateTimerUI(parent)
     self.durationInput:SetText(tostring(defaultDuration))
 
     self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.timerDisplay:SetPoint("CENTER", 0, 6)
+    self.timerDisplay:SetPoint("CENTER", 0, 10)
     self.timerDisplay:SetText("00:00")
 
     self.startPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.startPauseButton:SetSize(80, 25)
-    self.startPauseButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.startPauseButton:SetText("Start")
     self.startPauseButton:SetScript("OnClick", function()
         ST:ToggleTimer()
     end)
 
+    self.timerProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.timerProjectButton:SetText("Send to screen")
+    self.timerProjectButton:SetScript("OnClick", function()
+        ST:ToggleTimerProjected()
+    end)
+
     self.resetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.resetButton:SetSize(80, 25)
-    self.resetButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.resetButton:SetText("Reset")
     self.resetButton:SetScript("OnClick", function()
         ST:ResetTimer()
     end)
+
+    self:LayoutTrackerButtons(frame, self.startPauseButton, self.timerProjectButton, self.resetButton)
 
     return frame
 end
@@ -144,7 +148,11 @@ function ST:UpdateDisplay()
     if self.timer.running then
         displayTime = math.max(0, self.timer.remaining - (GetTime() - self.timer.anchor))
     end
-    self.timerDisplay:SetText(self:FormatTime(displayTime))
+    local text = self:FormatTime(displayTime)
+    self.timerDisplay:SetText(text)
+    if self.timerProjTime then
+        self.timerProjTime:SetText(text)
+    end
 end
 
 function ST:StartTimer()
@@ -214,6 +222,44 @@ function ST:TimerFinished()
     self:ResetTimer()
     self:PlayAlert()
     self:Print("Timer finished.")
+    self:UpdateDisplay()
+end
+
+function ST:CreateTimerProjectedFrame()
+    local frame = self:CreateOverlayFrame("SimpleTimerProjectedFrame", 140, 52, 180, 120, "Timer")
+    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("TOP", 0, -8)
+    label:SetText("Timer")
+    self.timerProjTime = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self.timerProjTime:SetPoint("TOP", 0, -22)
+    self.timerProjTime:SetText("00:00")
+    self.timerProjectedFrame = frame
+end
+
+function ST:ShowTimerProjected(show, pos)
+    if not self.timerProjectedFrame then
+        self:CreateTimerProjectedFrame()
+    end
+    if show then
+        self:PlaceOverlay(self.timerProjectedFrame, pos)
+        self.timerProjectedFrame:Show()
+        if self.timerProjectButton then
+            self.timerProjectButton:SetText("Unproject")
+        end
+        self.timer.projected = true
+        self:UpdateDisplay()
+    else
+        self.timerProjectedFrame:Hide()
+        if self.timerProjectButton then
+            self.timerProjectButton:SetText("Send to screen")
+        end
+        self.timer.projected = false
+    end
+end
+
+function ST:ToggleTimerProjected()
+    self:ShowTimerProjected(not (self.timerProjectedFrame and self.timerProjectedFrame:IsShown()))
+    self:SaveDB()
 end
 
 function ST:ToggleWindow()

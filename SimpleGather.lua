@@ -142,10 +142,10 @@ function ST:CreateSimpleGatherUI(parent)
 
     local listScroll = CreateFrame("ScrollFrame", "SimpleToolsGatherScroll", frame, "UIPanelScrollFrameTemplate")
     listScroll:SetPoint("TOPLEFT", 10, -76)
-    listScroll:SetPoint("BOTTOMRIGHT", -28, 38)
+    listScroll:SetPoint("BOTTOMRIGHT", -28, 42)
 
     local listChild = CreateFrame("Frame", nil, listScroll)
-    listChild:SetSize(480, 20)
+    listChild:SetSize(460, 20)
     listScroll:SetScrollChild(listChild)
 
     self.gatherListChild = listChild
@@ -154,29 +154,25 @@ function ST:CreateSimpleGatherUI(parent)
     self.gatherListHint:SetPoint("TOPLEFT", 0, 0)
     self.gatherListHint:SetText("Start, then herb / mine / skin. Loot is listed here.")
 
-    self.gatherProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.gatherProjectButton:SetSize(110, 25)
-    self.gatherProjectButton:SetPoint("BOTTOM", 0, 8)
-    self.gatherProjectButton:SetText("Send to screen")
-    self.gatherProjectButton:SetScript("OnClick", function()
-        ST:ToggleGatherProjected()
-    end)
-
     self.gatherStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.gatherStartPauseButton:SetSize(80, 25)
-    self.gatherStartPauseButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.gatherStartPauseButton:SetText("Start")
     self.gatherStartPauseButton:SetScript("OnClick", function()
         ST:ToggleGatherTracker()
     end)
 
+    self.gatherProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.gatherProjectButton:SetText("Send to screen")
+    self.gatherProjectButton:SetScript("OnClick", function()
+        ST:ToggleGatherProjected()
+    end)
+
     self.gatherResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.gatherResetButton:SetSize(80, 25)
-    self.gatherResetButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.gatherResetButton:SetText("Reset")
     self.gatherResetButton:SetScript("OnClick", function()
         ST:ResetGatherTracker()
     end)
+
+    self:LayoutTrackerButtons(frame, self.gatherStartPauseButton, self.gatherProjectButton, self.gatherResetButton)
 
     return frame
 end

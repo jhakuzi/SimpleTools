@@ -13,20 +13,24 @@ function ST:CreateSimpleWatchUI(parent)
     self.stopwatchDisplay:SetText("00:00")
 
     self.swStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.swStartPauseButton:SetSize(80, 25)
-    self.swStartPauseButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.swStartPauseButton:SetText("Start")
     self.swStartPauseButton:SetScript("OnClick", function()
         ST:ToggleStopwatch()
     end)
 
+    self.swProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.swProjectButton:SetText("Send to screen")
+    self.swProjectButton:SetScript("OnClick", function()
+        ST:ToggleWatchProjected()
+    end)
+
     self.swResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.swResetButton:SetSize(80, 25)
-    self.swResetButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.swResetButton:SetText("Reset")
     self.swResetButton:SetScript("OnClick", function()
         ST:ResetStopwatch()
     end)
+
+    self:LayoutTrackerButtons(frame, self.swStartPauseButton, self.swProjectButton, self.swResetButton)
 
     return frame
 end
@@ -43,7 +47,11 @@ function ST:UpdateStopwatch()
     if not self.stopwatchDisplay then
         return
     end
-    self.stopwatchDisplay:SetText(self:FormatTime(self:StopwatchElapsed()))
+    local text = self:FormatTime(self:StopwatchElapsed())
+    self.stopwatchDisplay:SetText(text)
+    if self.watchProjTime then
+        self.watchProjTime:SetText(text)
+    end
 end
 
 function ST:StartStopwatch()
@@ -70,10 +78,10 @@ function ST:ResetStopwatch()
     self.watch.running = false
     self.watch.elapsed = 0
     self.watch.anchor = 0
-    self.stopwatchDisplay:SetText("00:00")
     self.swStartPauseButton:SetText("Start")
     self:SaveDB()
     self:RefreshTicker()
+    self:UpdateStopwatch()
 end
 
 function ST:ToggleStopwatch()
@@ -82,4 +90,41 @@ function ST:ToggleStopwatch()
     else
         self:StartStopwatch()
     end
+end
+
+function ST:CreateWatchProjectedFrame()
+    local frame = self:CreateOverlayFrame("SimpleWatchProjectedFrame", 140, 52, 180, 60, "Stopwatch")
+    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("TOP", 0, -8)
+    label:SetText("Stopwatch")
+    self.watchProjTime = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self.watchProjTime:SetPoint("TOP", 0, -22)
+    self.watchProjTime:SetText("00:00")
+    self.watchProjectedFrame = frame
+end
+
+function ST:ShowWatchProjected(show, pos)
+    if not self.watchProjectedFrame then
+        self:CreateWatchProjectedFrame()
+    end
+    if show then
+        self:PlaceOverlay(self.watchProjectedFrame, pos)
+        self.watchProjectedFrame:Show()
+        if self.swProjectButton then
+            self.swProjectButton:SetText("Unproject")
+        end
+        self.watch.projected = true
+        self:UpdateStopwatch()
+    else
+        self.watchProjectedFrame:Hide()
+        if self.swProjectButton then
+            self.swProjectButton:SetText("Send to screen")
+        end
+        self.watch.projected = false
+    end
+end
+
+function ST:ToggleWatchProjected()
+    self:ShowWatchProjected(not (self.watchProjectedFrame and self.watchProjectedFrame:IsShown()))
+    self:SaveDB()
 end

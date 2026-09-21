@@ -25,28 +25,24 @@ function ST:CreateSimpleGoldUI(parent)
     self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.goldProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.goldProjectButton:SetSize(110, 25)
-    self.goldProjectButton:SetPoint("BOTTOM", 0, 8)
     self.goldProjectButton:SetText("Send to screen")
     self.goldProjectButton:SetScript("OnClick", function()
         ST:ToggleGoldProjected()
     end)
 
     self.goldStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.goldStartPauseButton:SetSize(80, 25)
-    self.goldStartPauseButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.goldStartPauseButton:SetText("Start")
     self.goldStartPauseButton:SetScript("OnClick", function()
         ST:ToggleGoldTracker()
     end)
 
     self.goldResetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.goldResetButton:SetSize(80, 25)
-    self.goldResetButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.goldResetButton:SetText("Reset")
     self.goldResetButton:SetScript("OnClick", function()
         ST:ResetGoldTracker()
     end)
+
+    self:LayoutTrackerButtons(frame, self.goldStartPauseButton, self.goldProjectButton, self.goldResetButton)
 
     return frame
 end
