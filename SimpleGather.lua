@@ -150,9 +150,6 @@ function ST:CreateSimpleGatherUI(parent)
 
     self.gatherListChild = listChild
     self.gatherListRows = {}
-    self.gatherListHint = listChild:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.gatherListHint:SetPoint("TOPLEFT", 0, 0)
-    self.gatherListHint:SetText("Start, then herb / mine / skin. Loot is listed here.")
 
     self.gatherStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.gatherStartPauseButton:SetText("Start")
@@ -292,10 +289,6 @@ function ST:RefreshGatherList()
     local rows = self.gatherListRows
     if not child or not rows then
         return
-    end
-
-    if self.gatherListHint then
-        self.gatherListHint:SetShown(#items == 0)
     end
 
     for i, item in ipairs(items) do
