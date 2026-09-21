@@ -142,7 +142,7 @@ function ST:CreateSimpleGatherUI(parent)
 
     local listScroll = CreateFrame("ScrollFrame", "SimpleToolsGatherScroll", frame, "UIPanelScrollFrameTemplate")
     listScroll:SetPoint("TOPLEFT", 10, -76)
-    listScroll:SetPoint("BOTTOMRIGHT", -28, 42)
+    listScroll:SetPoint("BOTTOMRIGHT", -28, 50)
 
     local listChild = CreateFrame("Frame", nil, listScroll)
     listChild:SetSize(460, 20)
@@ -169,7 +169,14 @@ function ST:CreateSimpleGatherUI(parent)
         ST:ResetGatherTracker()
     end)
 
-    self:LayoutTrackerButtons(frame, self.gatherStartPauseButton, self.gatherProjectButton, self.gatherResetButton)
+    -- Gather-only: sit above the inset edge so template artwork doesn't clip the frame.
+    local width, height, gap, bottom = 100, 24, 10, 14
+    self.gatherStartPauseButton:SetSize(width, height)
+    self.gatherProjectButton:SetSize(width, height)
+    self.gatherResetButton:SetSize(width, height)
+    self.gatherStartPauseButton:SetPoint("BOTTOM", frame, "BOTTOM", -(width + gap), bottom)
+    self.gatherProjectButton:SetPoint("BOTTOM", frame, "BOTTOM", 0, bottom)
+    self.gatherResetButton:SetPoint("BOTTOM", frame, "BOTTOM", (width + gap), bottom)
 
     return frame
 end
