@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.0.0"
+ST.VERSION = "2.1.0"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -58,7 +58,28 @@ local DEFAULTS = {
         projX = 0,
         projY = -80,
     },
-    notepad = { text = "" },
+    gather = {
+        running = false,
+        elapsed = 0,
+        nodes = 0,
+        herbNodes = 0,
+        oreNodes = 0,
+        skinNodes = 0,
+        items = {},
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 0,
+        projY = -170,
+    },
+    notepad = {
+        text = "",
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 260,
+        projY = 20,
+    },
 }
 
 -- Runtime clocks (GetTime is session-local and MUST NOT be persisted)
@@ -81,8 +102,20 @@ ST.gold = {
     gained = 0,
     projected = false,
 }
+ST.gather = {
+    running = false,
+    elapsed = 0,
+    anchor = 0,
+    nodes = 0,
+    herbNodes = 0,
+    oreNodes = 0,
+    skinNodes = 0,
+    items = {},
+    projected = false,
+}
 ST.reminder = { time = nil, set = false, lastFired = "" }
 ST.notepadText = ""
+ST.notepadProjected = false
 
 local function CopyDefaults(src, dest)
     dest = dest or {}
@@ -94,6 +127,23 @@ local function CopyDefaults(src, dest)
         end
     end
     return dest
+end
+
+local function CopyItems(src)
+    local out = {}
+    if type(src) ~= "table" then
+        return out
+    end
+    for k, v in pairs(src) do
+        if type(v) == "table" then
+            out[k] = {
+                name = v.name,
+                count = tonumber(v.count) or 0,
+                kind = v.kind,
+            }
+        end
+    end
+    return out
 end
 
 function ST:IsSecret(value)
@@ -232,6 +282,10 @@ function ST:CaptureRunningDurations()
         self.gold.elapsed = self.gold.elapsed + (now - self.gold.anchor)
         self.gold.anchor = now
     end
+    if self.gather.running then
+        self.gather.elapsed = self.gather.elapsed + (now - self.gather.anchor)
+        self.gather.anchor = now
+    end
 end
 
 local function SnapshotPoint(frame, fallback)
@@ -289,7 +343,27 @@ function ST:SaveDB()
     db.gold.projX = goldX
     db.gold.projY = goldY
 
+    local gatherPoint, gatherRel, gatherX, gatherY = SnapshotPoint(self.gatherProjectedFrame, db.gather)
+    db.gather.running = self.gather.running
+    db.gather.elapsed = self.gather.elapsed
+    db.gather.nodes = self.gather.nodes
+    db.gather.herbNodes = self.gather.herbNodes
+    db.gather.oreNodes = self.gather.oreNodes
+    db.gather.skinNodes = self.gather.skinNodes
+    db.gather.items = CopyItems(self.gather.items)
+    db.gather.projected = self.gather.projected
+    db.gather.projPoint = gatherPoint
+    db.gather.projRelativePoint = gatherRel
+    db.gather.projX = gatherX
+    db.gather.projY = gatherY
+
+    local notePoint, noteRel, noteX, noteY = SnapshotPoint(self.notepadProjectedFrame, db.notepad)
     db.notepad.text = self.notepadText or ""
+    db.notepad.projected = self.notepadProjected
+    db.notepad.projPoint = notePoint
+    db.notepad.projRelativePoint = noteRel
+    db.notepad.projX = noteX
+    db.notepad.projY = noteY
 
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
@@ -397,9 +471,35 @@ function ST:LoadState()
         self:ShowGoldProjected(true, db.gold)
     end
 
+    self.gather.running = db.gather.running or false
+    self.gather.elapsed = db.gather.elapsed or 0
+    self.gather.nodes = db.gather.nodes or 0
+    self.gather.herbNodes = db.gather.herbNodes or 0
+    self.gather.oreNodes = db.gather.oreNodes or 0
+    self.gather.skinNodes = db.gather.skinNodes or 0
+    self.gather.items = CopyItems(db.gather.items)
+    if self.gather.running then
+        self.gather.anchor = GetTime()
+        if self.gatherStartPauseButton then
+            self.gatherStartPauseButton:SetText("Pause")
+        end
+    elseif self.gather.elapsed > 0 and self.gatherStartPauseButton then
+        self.gatherStartPauseButton:SetText("Resume")
+    end
+    if self.UpdateGatherTracker then
+        self:UpdateGatherTracker()
+    end
+    if db.gather.projected and self.ShowGatherProjected then
+        self:ShowGatherProjected(true, db.gather)
+    end
+
     self.notepadText = db.notepad.text or ""
+    self.notepadProjected = db.notepad.projected or false
     if self.notepadEditBox then
         self.notepadEditBox:SetText(self.notepadText)
+    end
+    if self.notepadProjected and self.ShowNotepadProjected then
+        self:ShowNotepadProjected(true, db.notepad)
     end
 
     if self.frame and db.ui then
@@ -413,11 +513,11 @@ function ST:LoadState()
 end
 
 function ST:IsBusy()
-    return self.timer.running or self.watch.running or self.xp.running or self.gold.running or self.reminder.set
+    return self.timer.running or self.watch.running or self.xp.running or self.gold.running or self.gather.running or self.reminder.set
 end
 
 function ST:RefreshTicker()
-    local needFast = self.timer.running or self.watch.running or self.xp.running or self.gold.running
+    local needFast = self.timer.running or self.watch.running or self.xp.running or self.gold.running or self.gather.running
     local needSlow = self.reminder.set
     local interval
     if needFast then
@@ -465,6 +565,10 @@ function ST:OnTick()
         self:UpdateGoldTracker()
     end
 
+    if self.gather.running and self.UpdateGatherTracker then
+        self:UpdateGatherTracker()
+    end
+
     self:CheckReminder()
 end
 
@@ -475,6 +579,8 @@ function ST:RegisterEvents()
     f:RegisterEvent("PLAYER_XP_UPDATE")
     f:RegisterEvent("PLAYER_LEVEL_UP")
     f:RegisterEvent("PLAYER_ENTERING_WORLD")
+    f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    f:RegisterEvent("CHAT_MSG_LOOT")
     f:SetScript("OnEvent", function(_, event, ...)
         if event == "PLAYER_LOGOUT" then
             self:SaveDB()
@@ -491,6 +597,17 @@ function ST:RegisterEvents()
             end
             self:UpdateXPTracker()
             self:UpdateGoldTracker()
+            if self.UpdateGatherTracker then
+                self:UpdateGatherTracker()
+            end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            if self.OnGatherSpell then
+                self:OnGatherSpell(...)
+            end
+        elseif event == "CHAT_MSG_LOOT" then
+            if self.OnGatherLoot then
+                self:OnGatherLoot(...)
+            end
         end
     end)
     self.eventFrame = f
@@ -541,4 +658,56 @@ function ST:OpenSettings()
     else
         self:ToggleWindow()
     end
+end
+
+function ST:ApplyOverlayBackdrop(frame)
+    if not frame.SetBackdrop then
+        return
+    end
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 12,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+    })
+    frame:SetBackdropColor(0, 0, 0, 0.55)
+    frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.7)
+end
+
+function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, tooltipTitle)
+    local frame = CreateFrame("Frame", globalName, UIParent, "BackdropTemplate")
+    frame:SetSize(width, height)
+    frame:SetPoint("CENTER", UIParent, "CENTER", defaultX or 0, defaultY or 0)
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:SetClampedToScreen(true)
+    frame:SetFrameStrata("HIGH")
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", function(selfObj)
+        selfObj:StopMovingOrSizing()
+        ST:SaveDB()
+    end)
+    self:ApplyOverlayBackdrop(frame)
+    if tooltipTitle then
+        frame:SetScript("OnEnter", function(selfObj)
+            GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
+            GameTooltip:SetText(tooltipTitle)
+            GameTooltip:AddLine("Drag to move. Close the window — this overlay stays.", 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        frame:SetScript("OnLeave", GameTooltip_Hide)
+    end
+    frame:Hide()
+    return frame
+end
+
+function ST:PlaceOverlay(frame, pos)
+    if not frame or not pos or not pos.projPoint then
+        return
+    end
+    frame:ClearAllPoints()
+    frame:SetPoint(pos.projPoint, UIParent, pos.projRelativePoint or "CENTER", pos.projX or 0, pos.projY or 0)
 end

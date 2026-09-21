@@ -4,17 +4,18 @@ local GetTime = GetTime
 local CreateFrame = CreateFrame
 
 local TABS = {
-    { key = "timer",    label = "Timer",     width = 80 },
-    { key = "watch",    label = "Stopwatch", width = 92 },
-    { key = "reminder", label = "Reminder",  width = 86 },
-    { key = "xp",       label = "XP",        width = 70 },
-    { key = "gold",     label = "Gold",      width = 70 },
-    { key = "notepad",  label = "Notepad",   width = 84 },
+    { key = "timer",    label = "Timer",     width = 70 },
+    { key = "watch",    label = "Stopwatch", width = 86 },
+    { key = "reminder", label = "Reminder",  width = 80 },
+    { key = "xp",       label = "XP",        width = 50 },
+    { key = "gold",     label = "Gold",      width = 54 },
+    { key = "gather",   label = "Gather",    width = 68 },
+    { key = "notepad",  label = "Notepad",   width = 76 },
 }
 
 function ST:CreateMainFrame()
     local frame = CreateFrame("Frame", "SimpleToolsFrame", UIParent, "BasicFrameTemplateWithInset")
-    frame:SetSize(520, 248)
+    frame:SetSize(560, 300)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -62,15 +63,16 @@ function ST:CreateMainFrame()
     self.tabFrames[3] = self:CreateSimpleReminderUI(self.contentFrame)
     self.tabFrames[4] = self:CreateSimpleXPUI(self.contentFrame)
     self.tabFrames[5] = self:CreateSimpleGoldUI(self.contentFrame)
-    self.tabFrames[6] = self:CreateSimpleNotepadUI(self.contentFrame)
+    self.tabFrames[6] = self:CreateSimpleGatherUI(self.contentFrame)
+    self.tabFrames[7] = self:CreateSimpleNotepadUI(self.contentFrame)
 
-    -- Keep old field names so modules stay readable
     self.timerFrame = self.tabFrames[1]
     self.simpleWatchFrame = self.tabFrames[2]
     self.simpleReminderFrame = self.tabFrames[3]
     self.simpleXPFrame = self.tabFrames[4]
     self.simpleGoldFrame = self.tabFrames[5]
-    self.simpleNotepadFrame = self.tabFrames[6]
+    self.simpleGatherFrame = self.tabFrames[6]
+    self.simpleNotepadFrame = self.tabFrames[7]
 
     self:SelectTab(1)
     frame:Hide()
