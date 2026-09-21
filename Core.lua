@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.2.2"
+ST.VERSION = "2.2.3"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -704,20 +704,94 @@ function ST:OpenSettings()
     end
 end
 
-function ST:ApplyOverlayBackdrop(frame)
-    if not frame.SetBackdrop then
+function ST:TryCreateFrame(name, parent, template)
+    local ok, frame = pcall(CreateFrame, "Frame", name, parent, template)
+    if ok and frame then
+        return frame
+    end
+    return nil
+end
+
+function ST:TryCreateButton(name, parent, template)
+    local ok, btn = pcall(CreateFrame, "Button", name, parent, template)
+    if ok and btn then
+        return btn
+    end
+    return nil
+end
+
+-- Forever / Midnight windows use DefaultPanelTemplate (brown metal nine-slice).
+-- Fall back to the older inset frame if a client is missing the new kit.
+function ST:CreateThemedPanel(name, parent)
+    local frame = self:TryCreateFrame(name, parent or UIParent, "DefaultPanelTemplate")
+        or self:TryCreateFrame(name, parent or UIParent, "ButtonFrameTemplateNoPortrait")
+        or self:TryCreateFrame(name, parent or UIParent, "BasicFrameTemplateWithInset")
+    if not frame then
+        frame = CreateFrame("Frame", name, parent or UIParent, "BackdropTemplate")
+        self:ApplyOverlayBackdrop(frame)
+    end
+    return frame
+end
+
+function ST:SetPanelTitle(frame, text)
+    if not frame then
         return
     end
+    if frame.SetTitle then
+        frame:SetTitle(text)
+        return
+    end
+    if frame.TitleContainer and frame.TitleContainer.TitleText then
+        frame.TitleContainer.TitleText:SetText(text)
+        frame.title = frame.TitleContainer.TitleText
+        return
+    end
+    if frame.TitleText then
+        frame.TitleText:SetText(text)
+        frame.title = frame.TitleText
+        return
+    end
+    if not frame.title then
+        frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        frame.title:SetPoint("TOP", 0, -5)
+    end
+    frame.title:SetText(text)
+end
+
+function ST:EnsurePanelClose(frame)
+    if not frame or frame.CloseButton then
+        return
+    end
+    local close = self:TryCreateButton(nil, frame, "UIPanelCloseButtonDefaultAnchors")
+        or self:TryCreateButton(nil, frame, "UIPanelCloseButton")
+    if not close then
+        return
+    end
+    if not close:GetPoint() then
+        close:SetPoint("TOPRIGHT", -4, -5)
+    end
+    close:SetScript("OnClick", function()
+        frame:Hide()
+    end)
+    frame.CloseButton = close
+end
+
+function ST:ApplyOverlayBackdrop(frame)
+    if not frame or not frame.SetBackdrop then
+        return
+    end
+    -- Small HUDs can't use the 32px dialog nine-slice. Tint the thin tooltip
+    -- border bronze so it sits with Forever's brown metal instead of grey.
     frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true,
-        tileSize = 8,
+        tileSize = 16,
         edgeSize = 12,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
     })
-    frame:SetBackdropColor(0, 0, 0, 0.55)
-    frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.7)
+    frame:SetBackdropColor(0.18, 0.12, 0.06, 0.94)
+    frame:SetBackdropBorderColor(0.78, 0.58, 0.28, 0.95)
 end
 
 function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, tooltipTitle, onClose)

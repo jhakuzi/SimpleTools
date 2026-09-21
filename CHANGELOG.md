@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.3 — Forever brown metal frames
+
+- Main window uses Blizzard's `DefaultPanelTemplate` (the same brown metal nine-slice Forever and Midnight windows use). Falls back to the old inset frame if a client is missing it.
+- Overlays tint to bronze/parchment instead of grey tooltip chrome.
+
 ## 2.2.2 — Resizable notes overlay
 
 - The Notepad **Send to screen** overlay can be resized from the bottom-right corner. Size is saved across `/reload`.

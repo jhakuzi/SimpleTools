@@ -247,18 +247,7 @@ function ST:CreateXPProjectedFrame()
         selfObj:StopMovingOrSizing()
         ST:SaveDB()
     end)
-    if frame.SetBackdrop then
-        frame:SetBackdrop({
-            bgFile = "Interface\\Buttons\\WHITE8x8",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true,
-            tileSize = 8,
-            edgeSize = 12,
-            insets = { left = 2, right = 2, top = 2, bottom = 2 },
-        })
-        frame:SetBackdropColor(0, 0, 0, 0.45)
-        frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.6)
-    end
+    self:ApplyOverlayBackdrop(frame)
 
     self.xpProjGained = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjGained:SetPoint("TOP", 0, -8)

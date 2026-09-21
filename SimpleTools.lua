@@ -14,7 +14,7 @@ local TABS = {
 }
 
 function ST:CreateMainFrame()
-    local frame = CreateFrame("Frame", "SimpleToolsFrame", UIParent, "BasicFrameTemplateWithInset")
+    local frame = self:CreateThemedPanel("SimpleToolsFrame")
     frame:SetSize(560, 300)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
@@ -28,10 +28,8 @@ function ST:CreateMainFrame()
         ST:SaveDB()
     end)
     tinsert(UISpecialFrames, "SimpleToolsFrame")
-
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.title:SetPoint("TOP", 0, -5)
-    frame.title:SetText("SimpleTools")
+    self:SetPanelTitle(frame, "SimpleTools")
+    self:EnsurePanelClose(frame)
 
     self.frame = frame
     self.tabButtons = {}
