@@ -140,12 +140,26 @@ function ST:CreateSimpleGatherUI(parent)
     self.gatherElapsedDisplay:SetPoint("TOP", 0, -58)
     self.gatherElapsedDisplay:SetText("Elapsed: 00:00:00")
 
-    local listScroll = CreateFrame("ScrollFrame", "SimpleToolsGatherScroll", frame, "UIPanelScrollFrameTemplate")
-    listScroll:SetPoint("TOPLEFT", 10, -76)
-    listScroll:SetPoint("BOTTOMRIGHT", -28, 50)
+    -- Same width as the Start / Send to screen / Reset row (112 * 3 + 12 * 2).
+    local rowWidth = 360
+    local listBox = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    listBox:SetWidth(rowWidth)
+    listBox:SetPoint("TOP", 0, -76)
+    listBox:SetPoint("BOTTOM", 0, 42)
+    self:ApplyOverlayBackdrop(listBox)
+
+    local listScroll = CreateFrame("ScrollFrame", "SimpleToolsGatherScroll", listBox)
+    listScroll:SetPoint("TOPLEFT", 6, -4)
+    listScroll:SetPoint("BOTTOMRIGHT", -6, 4)
+    listScroll:EnableMouseWheel(true)
+    listScroll:SetScript("OnMouseWheel", function(selfObj, delta)
+        local maxScroll = selfObj:GetVerticalScrollRange() or 0
+        local nextScroll = math.min(maxScroll, math.max(0, selfObj:GetVerticalScroll() - delta * 16))
+        selfObj:SetVerticalScroll(nextScroll)
+    end)
 
     local listChild = CreateFrame("Frame", nil, listScroll)
-    listChild:SetSize(460, 20)
+    listChild:SetSize(rowWidth - 12, 20)
     listScroll:SetScrollChild(listChild)
 
     self.gatherListChild = listChild
