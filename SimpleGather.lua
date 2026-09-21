@@ -169,14 +169,8 @@ function ST:CreateSimpleGatherUI(parent)
         ST:ResetGatherTracker()
     end)
 
-    -- Gather-only: sit above the inset edge so template artwork doesn't clip the frame.
-    local width, height, gap, bottom = 100, 24, 10, 14
-    self.gatherStartPauseButton:SetSize(width, height)
-    self.gatherProjectButton:SetSize(width, height)
-    self.gatherResetButton:SetSize(width, height)
-    self.gatherStartPauseButton:SetPoint("BOTTOM", frame, "BOTTOM", -(width + gap), bottom)
-    self.gatherProjectButton:SetPoint("BOTTOM", frame, "BOTTOM", 0, bottom)
-    self.gatherResetButton:SetPoint("BOTTOM", frame, "BOTTOM", (width + gap), bottom)
+    -- Same size/layout as XP, Gold, Timer, Stopwatch.
+    self:LayoutTrackerButtons(frame, self.gatherStartPauseButton, self.gatherProjectButton, self.gatherResetButton)
 
     return frame
 end
