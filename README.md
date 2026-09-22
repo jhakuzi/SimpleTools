@@ -1,4 +1,4 @@
-# SimpleTools 2.4.1
+# SimpleTools 2.4.2
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -24,7 +24,7 @@ If the addon list marks it out of date, the Camelot TOC (`SimpleTools_Camelot.to
 | `/tools options` | Open the Settings panel |
 | `/tools resetpos` | Recenter the window and restore default size |
 
-Esc also closes the window. Left-click the minimap button or the addon compartment entry to toggle; right-click the minimap button for settings.
+Esc also closes the window. Open from the addon compartment (minimap cluster dropdown) or type `/tools`.
 
 ## Features
 

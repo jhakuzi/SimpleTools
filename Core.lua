@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.4.1"
+ST.VERSION = "2.4.2"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -754,9 +754,6 @@ function ST:RegisterSettings()
             defaultValue
         )
         setting:SetValueChangedCallback(function()
-            if key == "minimap" then
-                self:UpdateMinimapButton()
-            end
             self:SaveDB()
         end)
         Settings.CreateCheckbox(category, setting, tooltip)
@@ -764,7 +761,6 @@ function ST:RegisterSettings()
 
     AddCheck("sound", "Play alert sounds", "Play a sound when a timer or reminder fires.", true)
     AddCheck("chat", "Chat messages", "Print timer, reminder, and load messages in chat.", true)
-    AddCheck("minimap", "Show minimap button", "Show a minimap button in addition to the addon compartment.", true)
 
     Settings.RegisterAddOnCategory(category)
     self.settingsCategory = category

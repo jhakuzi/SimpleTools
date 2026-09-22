@@ -432,7 +432,6 @@ function ST:Initialize()
     self:RegisterEvents()
     self:RegisterSlash()
     self:RegisterSettings()
-    self:CreateMinimapButton()
     self:RefreshTicker()
 
     if not self.db.seenWelcome then

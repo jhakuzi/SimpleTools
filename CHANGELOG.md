@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.2 — Compartment icon
+
+- New anvil / pick / scroll icon in the addon compartment (64×64 TGA, drawn at 32px). The floating minimap button is gone; `/tools` or the compartment entry still opens the window.
+
 ## 2.4.1 — Compact default
 
 - `/tools` opens at 540×240. The oversized window from the old resize jump is folded back once; drag the corner later if you want it bigger. `/tools resetpos` also restores this size.
