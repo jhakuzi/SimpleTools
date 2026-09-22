@@ -1,4 +1,4 @@
-# SimpleTools 2.3.4
+# SimpleTools 2.3.5
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -39,7 +39,7 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
 
-The main window is resizable from the bottom-right corner. Size is saved; `/tools resetpos` restores 580×300.
+The main window is resizable from the bottom-right corner. Size is saved; `/tools resetpos` restores 540×240.
 
 State survives `/reload` and logout. Saved variables migrate from 1.x automatically; running timers are re-anchored because `GetTime()` resets on reload.
 

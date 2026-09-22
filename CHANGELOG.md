@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.5 — Compact window
+
+- Default size is 540×240. Tabs shrink onto one centered row instead of wrapping Shop onto a second line. `/tools resetpos` restores this size. Existing 580×300 windows migrate once.
+
 ## 2.3.4 — Centered tabs
 
 - Tab buttons sit as a centered group. If they wrap (narrow window, or more tabs later) each row stays centered instead of leaving a hole on the right.

@@ -16,7 +16,7 @@ local TABS = {
 
 function ST:CreateMainFrame()
     local frame = self:CreateThemedPanel("SimpleToolsFrame")
-    frame:SetSize(580, 300)
+    frame:SetSize(ST.FRAME_W, ST.FRAME_H)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -31,7 +31,7 @@ function ST:CreateMainFrame()
     tinsert(UISpecialFrames, "SimpleToolsFrame")
     self:SetPanelTitle(frame, "SimpleTools")
     self:EnsurePanelClose(frame)
-    self:AttachResizeGrip(frame, 560, 260, 900, 640, function()
+    self:AttachResizeGrip(frame, ST.FRAME_MIN_W, ST.FRAME_MIN_H, ST.FRAME_MAX_W, ST.FRAME_MAX_H, function()
         ST:OnMainFrameSizeChanged()
     end)
     frame:SetScript("OnSizeChanged", function()
@@ -45,7 +45,14 @@ function ST:CreateMainFrame()
 
     for i, tab in ipairs(TABS) do
         local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-        btn:SetSize(tab.width, 20)
+        btn.naturalWidth = tab.width
+        btn:SetSize(tab.width, 18)
+        if btn.SetNormalFontObject then
+            btn:SetNormalFontObject("GameFontNormalSmall")
+        end
+        if btn.Text and btn.Text.SetFontObject then
+            btn.Text:SetFontObject("GameFontNormalSmall")
+        end
         btn:SetText(tab.label)
         btn:SetScript("OnClick", function()
             self:SelectTab(i)
@@ -86,41 +93,89 @@ function ST:LayoutTabButtons()
     if not frame or not buttons or #buttons == 0 then
         return
     end
-    local frameWidth = frame:GetWidth() or 580
-    local inner = math.max(200, frameWidth - 24)
-    local gap, height, rowGap, top = 2, 20, 4, 32
-    local i, rows, y = 1, 0, -top
-    while i <= #buttons do
-        local rowWidth, count = 0, 0
-        for j = i, #buttons do
-            local w = buttons[j]:GetWidth() or 50
-            local nextWidth = count == 0 and w or (rowWidth + gap + w)
-            if count > 0 and nextWidth > inner then
-                break
-            end
-            rowWidth = nextWidth
-            count = count + 1
+    local frameWidth = frame:GetWidth() or ST.FRAME_W
+    local inner = math.max(200, frameWidth - 32)
+    local gap, height, rowGap, top = 2, 18, 3, 30
+    local minW = 48
+    local n = #buttons
+    local natural, total = {}, 0
+    for i, btn in ipairs(buttons) do
+        natural[i] = btn.naturalWidth or 50
+        total = total + natural[i]
+        if i > 1 then
+            total = total + gap
         end
-        if count < 1 then
-            count = 1
-            rowWidth = buttons[i]:GetWidth() or 50
+    end
+    local minTotal = n * minW + math.max(0, n - 1) * gap
+    local rows = 1
+    local y = -top
+
+    if total <= inner or minTotal <= inner then
+        local usable = math.min(inner, math.max(total, minTotal))
+        if total > inner then
+            usable = inner
         end
-        local x = (frameWidth - rowWidth) / 2
-        for k = 0, count - 1 do
-            local btn = buttons[i + k]
+        local textWidth = total - math.max(0, n - 1) * gap
+        local scale = 1
+        if textWidth > 0 then
+            scale = (usable - math.max(0, n - 1) * gap) / textWidth
+        end
+        local widths, used = {}, 0
+        for i = 1, n do
+            local w = math.max(minW, math.floor(natural[i] * scale + 0.5))
+            widths[i] = w
+            used = used + w
+        end
+        used = used + math.max(0, n - 1) * gap
+        if used > usable and n > 0 then
+            widths[n] = math.max(minW, widths[n] - (used - usable))
+            used = usable
+        end
+        local x = (frameWidth - used) / 2
+        for i, btn in ipairs(buttons) do
+            btn:SetSize(widths[i], height)
             btn:ClearAllPoints()
             btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
-            x = x + (btn:GetWidth() or 50) + gap
+            x = x + widths[i] + gap
         end
-        i = i + count
-        rows = rows + 1
-        y = y - height - rowGap
+        rows = 1
+    else
+        local i = 1
+        rows = 0
+        while i <= n do
+            local rowWidth, count = 0, 0
+            for j = i, n do
+                local w = math.max(minW, natural[j])
+                local nextWidth = count == 0 and w or (rowWidth + gap + w)
+                if count > 0 and nextWidth > inner then
+                    break
+                end
+                rowWidth = nextWidth
+                count = count + 1
+            end
+            if count < 1 then
+                count = 1
+                rowWidth = math.max(minW, natural[i])
+            end
+            local x = (frameWidth - rowWidth) / 2
+            for k = 0, count - 1 do
+                local btn = buttons[i + k]
+                local w = math.max(minW, natural[i + k])
+                btn:SetSize(w, height)
+                btn:ClearAllPoints()
+                btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+                x = x + w + gap
+            end
+            i = i + count
+            rows = rows + 1
+            y = y - height - rowGap
+        end
     end
     if self.contentFrame then
         local inset = top + rows * (height + rowGap) + 2
         self.contentFrame:ClearAllPoints()
         self.contentFrame:SetPoint("TOPLEFT", 10, -inset)
-        self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 10)
+        self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 8)
     end
 end
 
@@ -338,7 +393,7 @@ function ST:RegisterSlash()
         elseif msg == "resetpos" then
             self.frame:ClearAllPoints()
             self.frame:SetPoint("CENTER")
-            self.frame:SetSize(580, 300)
+            self.frame:SetSize(ST.FRAME_W, ST.FRAME_H)
             self:OnMainFrameSizeChanged()
             self:SaveDB()
             self:Print("Window position and size reset.")

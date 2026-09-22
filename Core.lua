@@ -7,8 +7,14 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.4"
+ST.VERSION = "2.3.5"
 ST.DB_VERSION = 2
+ST.FRAME_W = 540
+ST.FRAME_H = 240
+ST.FRAME_MIN_W = 480
+ST.FRAME_MIN_H = 220
+ST.FRAME_MAX_W = 900
+ST.FRAME_MAX_H = 640
 
 local GetTime = GetTime
 local CreateFrame = CreateFrame
@@ -24,8 +30,8 @@ local DEFAULTS = {
         x = 0,
         y = 0,
         selectedTab = 1,
-        width = 580,
-        height = 300,
+        width = 540,
+        height = 240,
     },
     options = {
         sound = true,
@@ -447,8 +453,8 @@ function ST:SaveDB()
             db.ui.x = x
             db.ui.y = y
         end
-        db.ui.width = math.floor((self.frame:GetWidth() or 580) + 0.5)
-        db.ui.height = math.floor((self.frame:GetHeight() or 300) + 0.5)
+        db.ui.width = math.floor((self.frame:GetWidth() or ST.FRAME_W) + 0.5)
+        db.ui.height = math.floor((self.frame:GetHeight() or ST.FRAME_H) + 0.5)
     end
 end
 
@@ -599,10 +605,14 @@ function ST:LoadState()
     if self.frame and db.ui then
         self.frame:ClearAllPoints()
         self.frame:SetPoint(db.ui.point or "CENTER", UIParent, db.ui.relativePoint or "CENTER", db.ui.x or 0, db.ui.y or 0)
-        local width = db.ui.width or 580
-        local height = db.ui.height or 300
-        width = math.max(560, math.min(900, width))
-        height = math.max(260, math.min(640, height))
+        local width = db.ui.width or ST.FRAME_W
+        local height = db.ui.height or ST.FRAME_H
+        -- Old 2.3.3 default was 580×300; fold it into the compact size unless they resized.
+        if width == 580 and height == 300 then
+            width, height = ST.FRAME_W, ST.FRAME_H
+        end
+        width = math.max(ST.FRAME_MIN_W, math.min(ST.FRAME_MAX_W, width))
+        height = math.max(ST.FRAME_MIN_H, math.min(ST.FRAME_MAX_H, height))
         self.frame:SetSize(width, height)
         if self.OnMainFrameSizeChanged then
             self:OnMainFrameSizeChanged()
