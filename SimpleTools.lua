@@ -4,14 +4,11 @@ local GetTime = GetTime
 local CreateFrame = CreateFrame
 
 local TABS = {
-    { key = "timer",    label = "Timer",     width = 70 },
-    { key = "watch",    label = "Stopwatch", width = 86 },
-    { key = "reminder", label = "Reminder",  width = 80 },
-    { key = "xp",       label = "XP",        width = 50 },
-    { key = "gold",     label = "Gold",      width = 54 },
-    { key = "gather",   label = "Gather",    width = 62 },
-    { key = "notepad",  label = "Notepad",   width = 70 },
-    { key = "shop",     label = "Shop",      width = 50 },
+    { key = "time",    label = "Time",     width = 56 },
+    { key = "xp",      label = "XP/Gold",  width = 72 },
+    { key = "gather",  label = "Gather",   width = 62 },
+    { key = "notepad", label = "Notepad",  width = 70 },
+    { key = "shop",    label = "Shop",     width = 50 },
 }
 
 function ST:CreateMainFrame()
@@ -65,23 +62,17 @@ function ST:CreateMainFrame()
     self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 10)
     self:LayoutTabButtons()
 
-    self.tabFrames[1] = self:CreateTimerUI(self.contentFrame)
-    self.tabFrames[2] = self:CreateSimpleWatchUI(self.contentFrame)
-    self.tabFrames[3] = self:CreateSimpleReminderUI(self.contentFrame)
-    self.tabFrames[4] = self:CreateSimpleXPUI(self.contentFrame)
-    self.tabFrames[5] = self:CreateSimpleGoldUI(self.contentFrame)
-    self.tabFrames[6] = self:CreateSimpleGatherUI(self.contentFrame)
-    self.tabFrames[7] = self:CreateSimpleNotepadUI(self.contentFrame)
-    self.tabFrames[8] = self:CreateSimpleShopUI(self.contentFrame)
+    self.tabFrames[1] = self:CreateTimeTab(self.contentFrame)
+    self.tabFrames[2] = self:CreateXPGoldTab(self.contentFrame)
+    self.tabFrames[3] = self:CreateSimpleGatherUI(self.contentFrame)
+    self.tabFrames[4] = self:CreateSimpleNotepadUI(self.contentFrame)
+    self.tabFrames[5] = self:CreateSimpleShopUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
-    self.simpleWatchFrame = self.tabFrames[2]
-    self.simpleReminderFrame = self.tabFrames[3]
-    self.simpleXPFrame = self.tabFrames[4]
-    self.simpleGoldFrame = self.tabFrames[5]
-    self.simpleGatherFrame = self.tabFrames[6]
-    self.simpleNotepadFrame = self.tabFrames[7]
-    self.shopFrame = self.tabFrames[8]
+    self.simpleXPFrame = self.tabFrames[2]
+    self.simpleGatherFrame = self.tabFrames[3]
+    self.simpleNotepadFrame = self.tabFrames[4]
+    self.shopFrame = self.tabFrames[5]
 
     self:SelectTab(1)
     frame:Hide()
@@ -204,17 +195,40 @@ function ST:SelectTab(id)
     end
 end
 
+function ST:CreateTimeTab(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetAllPoints()
+    local cols = self:SplitColumns(frame, 3)
+    self:CreateTimerUI(cols[1])
+    self:CreateSimpleWatchUI(cols[2])
+    self:CreateSimpleReminderUI(cols[3])
+    return frame
+end
+
+function ST:CreateXPGoldTab(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetAllPoints()
+    local cols = self:SplitColumns(frame, 2)
+    self:CreateSimpleXPUI(cols[1])
+    self:CreateSimpleGoldUI(cols[2])
+    return frame
+end
+
 function ST:CreateTimerUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    durationLabel:SetPoint("TOP", -48, -8)
-    durationLabel:SetText("Duration (min):")
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("Timer")
+
+    local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    durationLabel:SetPoint("TOP", 0, -18)
+    durationLabel:SetText("Duration (min)")
 
     self.durationInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    self.durationInput:SetSize(50, 20)
-    self.durationInput:SetPoint("LEFT", durationLabel, "RIGHT", 10, 0)
+    self.durationInput:SetSize(44, 18)
+    self.durationInput:SetPoint("TOP", durationLabel, "BOTTOM", 0, -2)
     self.durationInput:SetAutoFocus(false)
     self.durationInput:SetNumeric(true)
     self.durationInput:SetMaxLetters(4)
@@ -225,7 +239,7 @@ function ST:CreateTimerUI(parent)
     self.durationInput:SetText(tostring(defaultDuration))
 
     self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.timerDisplay:SetPoint("CENTER", 0, 10)
+    self.timerDisplay:SetPoint("TOP", self.durationInput, "BOTTOM", 0, -8)
     self.timerDisplay:SetText("00:00")
 
     self.startPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
@@ -246,7 +260,7 @@ function ST:CreateTimerUI(parent)
         ST:ResetTimer()
     end)
 
-    self:LayoutTrackerButtons(frame, self.startPauseButton, self.timerProjectButton, self.resetButton)
+    self:LayoutColumnButtons(frame, self.startPauseButton, self.timerProjectButton, self.resetButton)
 
     return frame
 end

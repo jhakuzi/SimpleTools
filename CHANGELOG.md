@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0 — Combined tabs, live overlays
+
+- Time tab: Timer, Stopwatch, and Reminder side by side. XP/Gold share one tab.
+- Notepad and Shop overlays are editable in place (type notes, change item qty).
+- Resize grip pins the frame before sizing so the window no longer jumps to a huge size.
+
 ## 2.3.6 — Notepad inset
 
 - Notepad sits in the same bronze inset box as the Shop list.

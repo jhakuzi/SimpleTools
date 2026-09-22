@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.6"
+ST.VERSION = "2.4.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -30,6 +30,7 @@ local DEFAULTS = {
         x = 0,
         y = 0,
         selectedTab = 1,
+        tabs = "v2",
         width = 540,
         height = 240,
     },
@@ -444,6 +445,10 @@ function ST:SaveDB()
     db.shop.projRelativePoint = shopRel
     db.shop.projX = shopX
     db.shop.projY = shopY
+    if self.shopProjectedFrame then
+        db.shop.projWidth = math.floor((self.shopProjectedFrame:GetWidth() or 220) + 0.5)
+        db.shop.projHeight = math.floor((self.shopProjectedFrame:GetHeight() or 140) + 0.5)
+    end
 
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
@@ -620,6 +625,11 @@ function ST:LoadState()
     end
 
     if db.ui and db.ui.selectedTab then
+        if db.ui.tabs ~= "v2" then
+            local legacy = { 1, 1, 1, 2, 2, 3, 4, 5 }
+            db.ui.selectedTab = legacy[db.ui.selectedTab] or 1
+            db.ui.tabs = "v2"
+        end
         self:SelectTab(db.ui.selectedTab)
     end
 end
@@ -987,9 +997,84 @@ function ST:LayoutBottomPair(parent, leftBtn, rightBtn)
     rightBtn:SetPoint("BOTTOM", parent, "BOTTOM", offset, bottom)
 end
 
+function ST:LayoutColumnButtons(parent, ...)
+    local btns = { ... }
+    local function layout()
+        local pw = parent:GetWidth() or 120
+        local width = math.min(112, math.max(64, pw - 8))
+        local height, gap, bottom = 20, 3, 4
+        local y = bottom
+        for i = #btns, 1, -1 do
+            local btn = btns[i]
+            btn:SetSize(width, height)
+            btn:ClearAllPoints()
+            btn:SetPoint("BOTTOM", parent, "BOTTOM", 0, y)
+            y = y + height + gap
+        end
+    end
+    if not parent.stColumnButtonsHooked then
+        parent.stColumnButtonsHooked = true
+        parent:HookScript("OnSizeChanged", layout)
+    end
+    layout()
+end
+
+function ST:SplitColumns(parent, count)
+    local cols = {}
+    for i = 1, count do
+        cols[i] = CreateFrame("Frame", nil, parent)
+    end
+    local dividers = {}
+    for i = 1, count - 1 do
+        local line = parent:CreateTexture(nil, "ARTWORK")
+        line:SetColorTexture(0.78, 0.58, 0.28, 0.28)
+        line:SetWidth(1)
+        dividers[i] = line
+    end
+    local function layout()
+        local width = parent:GetWidth() or 400
+        local gap = 10
+        local colW = math.max(80, (width - gap * (count - 1)) / count)
+        for i, col in ipairs(cols) do
+            local x = (i - 1) * (colW + gap)
+            col:ClearAllPoints()
+            col:SetPoint("TOPLEFT", x, 0)
+            col:SetPoint("BOTTOMLEFT", x, 0)
+            col:SetWidth(colW)
+        end
+        for i, line in ipairs(dividers) do
+            local x = i * colW + (i - 1) * gap + gap / 2
+            line:ClearAllPoints()
+            line:SetPoint("TOPLEFT", parent, "TOPLEFT", x, -4)
+            line:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", x, 4)
+        end
+    end
+    parent:HookScript("OnSizeChanged", layout)
+    layout()
+    return cols
+end
+
+function ST:PinFrameForResize(frame)
+    if not frame then
+        return
+    end
+    local left, bottom = frame:GetLeft(), frame:GetBottom()
+    local width, height = frame:GetWidth(), frame:GetHeight()
+    if not left or not bottom or not width or not height then
+        return
+    end
+    frame:ClearAllPoints()
+    frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    frame:SetSize(width, height)
+end
+
 function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
     if not frame then
         return
+    end
+    if frame.ResizeButton then
+        frame.ResizeButton:Hide()
+        frame.ResizeButton:EnableMouse(false)
     end
     frame:SetResizable(true)
     if frame.SetResizeBounds then
@@ -1002,6 +1087,9 @@ function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
             frame:SetMaxResize(maxW, maxH)
         end
     end
+    if frame.resizeGrip then
+        return frame.resizeGrip
+    end
     local grip = CreateFrame("Button", nil, frame)
     grip:SetSize(16, 16)
     grip:SetPoint("BOTTOMRIGHT", -2, 2)
@@ -1011,6 +1099,10 @@ function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
     grip:SetScript("OnMouseDown", function()
+        ST:PinFrameForResize(frame)
+        if frame.SetResizeBounds then
+            frame:SetResizeBounds(minW, minH, maxW, maxH)
+        end
         frame:StartSizing("BOTTOMRIGHT")
     end)
     grip:SetScript("OnMouseUp", function()

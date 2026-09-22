@@ -634,6 +634,21 @@ function ST:RemoveShopItem(index)
     self:SaveDB()
 end
 
+function ST:SetShopItemCount(index, count)
+    local entry = self.shopItems and self.shopItems[index]
+    if not entry then
+        return
+    end
+    count = tonumber(count)
+    if not count or count <= 0 then
+        self:RemoveShopItem(index)
+        return
+    end
+    entry.count = math.min(9999, math.floor(count + 0.5))
+    self:RefreshShopList()
+    self:SaveDB()
+end
+
 function ST:ClearShopList()
     wipe(self.shopItems)
     self:CancelShopQuantity()
@@ -968,6 +983,27 @@ function ST:LayoutShopProfButtons()
     end
 end
 
+function ST:BindShopQty(row)
+    if not row.qty then
+        return
+    end
+    row.qty:SetScript("OnEnterPressed", function(selfBox)
+        ST:SetShopItemCount(row.index, tonumber(selfBox:GetText()))
+        selfBox:ClearFocus()
+    end)
+    row.qty:SetScript("OnEditFocusLost", function(selfBox)
+        if row.index then
+            ST:SetShopItemCount(row.index, tonumber(selfBox:GetText()) or (row.entry and row.entry.count))
+        end
+    end)
+    row.qty:SetScript("OnEscapePressed", function(selfBox)
+        if row.entry then
+            selfBox:SetText(tostring(row.entry.count or 1))
+        end
+        selfBox:ClearFocus()
+    end)
+end
+
 function ST:BindShopEntryRow(row)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     row:SetScript("OnEnter", function(selfObj)
@@ -1009,8 +1045,16 @@ function ST:AcquireShopRow(i)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
 
+    row.qty = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
+    row.qty:SetSize(36, 16)
+    row.qty:SetPoint("LEFT", 2, 0)
+    row.qty:SetAutoFocus(false)
+    row.qty:SetNumeric(true)
+    row.qty:SetMaxLetters(4)
+    row.qty:SetJustifyH("RIGHT")
+
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.text:SetPoint("LEFT", 4, 0)
+    row.text:SetPoint("LEFT", row.qty, "RIGHT", 6, 0)
     row.text:SetPoint("RIGHT", -18, 0)
     row.text:SetJustifyH("LEFT")
     if row.text.SetWordWrap then
@@ -1027,6 +1071,7 @@ function ST:AcquireShopRow(i)
         ST:RemoveShopItem(row.index)
     end)
 
+    self:BindShopQty(row)
     self:BindShopEntryRow(row)
     self.shopListRows[i] = row
     return row
@@ -1046,7 +1091,10 @@ function ST:RefreshShopList()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText(tostring(entry.count) .. " x " .. link)
+            row.text:SetText("x " .. link)
+            if row.qty and not row.qty:HasFocus() then
+                row.qty:SetText(tostring(entry.count or 1))
+            end
             row:SetWidth(self.shopListChild:GetWidth() or 400)
             row:Show()
         elseif row then
@@ -1100,10 +1148,10 @@ function ST:HookShopClicks()
 end
 
 function ST:CreateShopProjectedFrame()
-    local frame = self:CreateOverlayFrame("SimpleShopProjectedFrame", 220, 140, 180, -80, "Shop", function()
+    local frame = self:CreateOverlayFrame("SimpleShopProjectedFrame", 220, 160, 180, -80, "Shop", function()
         ST:ShowShopProjected(false)
     end)
-    frame.overlayHint = "Shift-click a row to paste into AH search. Drag to move. Hover for × to hide."
+    frame.overlayHint = "Edit qty in place. Shift-click a row for AH search. Corner to resize. Hover for × to hide."
 
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 10, -8)
@@ -1111,7 +1159,7 @@ function ST:CreateShopProjectedFrame()
 
     local scroll = CreateFrame("ScrollFrame", "SimpleToolsShopOverlayScroll", frame)
     scroll:SetPoint("TOPLEFT", 8, -24)
-    scroll:SetPoint("BOTTOMRIGHT", -8, 8)
+    scroll:SetPoint("BOTTOMRIGHT", -8, 16)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(selfObj, delta)
         local maxScroll = selfObj:GetVerticalScrollRange() or 0
@@ -1127,9 +1175,28 @@ function ST:CreateShopProjectedFrame()
     self.shopProjEmpty:SetPoint("TOPLEFT", 4, -4)
     self.shopProjEmpty:SetText("List is empty.")
 
+    self:AttachResizeGrip(frame, 160, 90, 560, 480, function()
+        ST:LayoutShopProjected()
+    end)
+    frame:SetScript("OnSizeChanged", function()
+        ST:LayoutShopProjected()
+    end)
+
     self.shopProjChild = child
+    self.shopProjScroll = scroll
     self.shopProjRows = {}
     self.shopProjectedFrame = frame
+end
+
+function ST:LayoutShopProjected()
+    if not self.shopProjChild or not self.shopProjScroll then
+        return
+    end
+    local width = self.shopProjScroll:GetWidth() or 200
+    self.shopProjChild:SetWidth(math.max(80, width))
+    for _, row in ipairs(self.shopProjRows or {}) do
+        row:SetWidth(width)
+    end
 end
 
 function ST:AcquireShopProjRow(i)
@@ -1143,8 +1210,16 @@ function ST:AcquireShopProjRow(i)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
 
+    row.qty = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
+    row.qty:SetSize(36, 16)
+    row.qty:SetPoint("LEFT", 2, 0)
+    row.qty:SetAutoFocus(false)
+    row.qty:SetNumeric(true)
+    row.qty:SetMaxLetters(4)
+    row.qty:SetJustifyH("RIGHT")
+
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.text:SetPoint("LEFT", 4, 0)
+    row.text:SetPoint("LEFT", row.qty, "RIGHT", 6, 0)
     row.text:SetPoint("RIGHT", -18, 0)
     row.text:SetJustifyH("LEFT")
     if row.text.SetWordWrap then
@@ -1161,6 +1236,7 @@ function ST:AcquireShopProjRow(i)
         ST:RemoveShopItem(row.index)
     end)
 
+    self:BindShopQty(row)
     self:BindShopEntryRow(row)
     self.shopProjRows[i] = row
     return row
@@ -1180,7 +1256,10 @@ function ST:RefreshShopProjected()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText(tostring(entry.count) .. " x " .. link)
+            row.text:SetText("x " .. link)
+            if row.qty and not row.qty:HasFocus() then
+                row.qty:SetText(tostring(entry.count or 1))
+            end
             row:SetWidth(self.shopProjChild:GetWidth() or 200)
             row:Show()
         elseif row then
@@ -1192,8 +1271,7 @@ function ST:RefreshShopProjected()
         self.shopProjEmpty:SetShown(shown == 0)
     end
     self.shopProjChild:SetHeight(math.max(20, shown * ROW_HEIGHT + 4))
-    local height = math.min(280, math.max(80, 32 + math.max(1, shown) * ROW_HEIGHT + 10))
-    self.shopProjectedFrame:SetHeight(height)
+    self:LayoutShopProjected()
 end
 
 function ST:ShowShopProjected(show, pos)
@@ -1202,6 +1280,9 @@ function ST:ShowShopProjected(show, pos)
     end
     if show then
         self:PlaceOverlay(self.shopProjectedFrame, pos)
+        local w = (pos and pos.projWidth) or 220
+        local h = (pos and pos.projHeight) or 160
+        self.shopProjectedFrame:SetSize(math.max(160, w), math.max(90, h))
         self.shopProjectedFrame:Show()
         if self.shopProjectButton then
             self.shopProjectButton:SetText("Unproject")

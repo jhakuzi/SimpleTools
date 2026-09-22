@@ -8,40 +8,38 @@ function ST:CreateSimpleReminderUI(parent)
     frame:SetAllPoints()
     self.reminderFrame = frame
 
-    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    label:SetPoint("TOP", 0, -10)
-    label:SetText("Set reminder (HH:MM)")
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("Reminder")
+
+    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("TOP", 0, -18)
+    label:SetText("HH:MM")
 
     self.reminderInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    self.reminderInput:SetSize(80, 20)
-    self.reminderInput:SetPoint("TOP", 0, -40)
+    self.reminderInput:SetSize(56, 18)
+    self.reminderInput:SetPoint("TOP", label, "BOTTOM", 0, -2)
     self.reminderInput:SetAutoFocus(false)
     self.reminderInput:SetMaxLetters(5)
     self.reminderInput:SetText(date("%H:%M"))
 
+    self.reminderStatus = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.reminderStatus:SetPoint("TOP", self.reminderInput, "BOTTOM", 0, -8)
+    self.reminderStatus:SetText("No reminder set")
+
     self.remSetButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.remSetButton:SetSize(80, 25)
-    self.remSetButton:SetPoint("BOTTOMLEFT", 10, 8)
     self.remSetButton:SetText("Set")
     self.remSetButton:SetScript("OnClick", function()
         ST:SetReminder(self.reminderInput:GetText())
     end)
 
     self.remClearButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.remClearButton:SetSize(80, 25)
-    self.remClearButton:SetPoint("BOTTOMRIGHT", -10, 8)
     self.remClearButton:SetText("Clear")
     self.remClearButton:SetScript("OnClick", function()
         ST:ClearReminder()
     end)
 
-    self.reminderStatus = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    self.reminderStatus:SetPoint("TOP", 0, -78)
-    self.reminderStatus:SetText("No reminder set")
-
-    local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:SetPoint("TOP", self.reminderStatus, "BOTTOM", 0, -8)
-    hint:SetText("24-hour clock. Fires once per day until cleared.")
+    self:LayoutColumnButtons(frame, self.remSetButton, self.remClearButton)
 
     return frame
 end

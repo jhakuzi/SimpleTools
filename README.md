@@ -1,4 +1,4 @@
-# SimpleTools 2.3.6
+# SimpleTools 2.4.0
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -28,14 +28,11 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 
 ## Features
 
-- **Timer** — countdown in minutes, sound + chat when it ends; **Send to screen** overlay
-- **Stopwatch** — independent count-up; **Send to screen** overlay
-- **Reminder** — 24-hour HH:MM alarm, fires once per day until cleared
-- **XP** — gained, XP/hr, time-to-level, rested XP; **Send to screen** overlay
-- **Gold** — session gold and gold/hr; **Send to screen** overlay
+- **Time** — Timer, Stopwatch, and Reminder side by side; timer and stopwatch **Send to screen** overlays
+- **XP/Gold** — session XP (rate, TTL, rested) and gold/hr in one tab, each with its own overlay
 - **Gather** — nodes/hr for herbalism, mining, and skinning; session list of herbs, ores, and leather; **Send to screen** overlay
-- **Notepad** — notes persist (debounced save); **Clear** plus **Send to screen** HUD so you can close the window
-- **Shop** — shift-click bag items in (Shop tab open), or pick a reagent from a profession dropdown; type a quantity; rows show `23 x [Item]`; **Send to screen** overlay; shift-click a row (window or overlay) to paste into auction house search
+- **Notepad** — notes persist (debounced save); **Clear** plus an **editable** **Send to screen** HUD
+- **Shop** — shift-click bag items or pick a profession reagent; edit qty on the list or overlay; shift-click a row into auction house search
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
 
@@ -55,7 +52,7 @@ A prompt asks how many. Matching items stack on the same row. Reagent lists cove
 - Shift-click a row with the auction house open to fill the search box and run the search (works on the projected overlay too)
 - Right-click a row (or the **x**) to remove it
 - **Clear list** wipes the list
-- **Send to screen** keeps the list visible after you close the window
+- **Send to screen** keeps the list visible after you close the window — qty is still editable there
 - Shift-click is only intercepted while the Shop tab is visible, so AH and chat still work on other tabs
 
 ## Gather tracking

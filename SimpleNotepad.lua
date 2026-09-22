@@ -96,100 +96,119 @@ function ST:CreateNotepadProjectedFrame()
     local frame = self:CreateOverlayFrame("SimpleNotepadProjectedFrame", 260, 200, 260, 20, "Notes", function()
         ST:ShowNotepadProjected(false)
     end)
-    frame.overlayHint = "Drag to move. Drag the bottom-right corner to resize. Hover for × to hide."
+    frame.overlayHint = "Click to edit. Drag the title to move. Corner to resize. Hover for × to hide."
 
-    frame:SetResizable(true)
-    if frame.SetResizeBounds then
-        frame:SetResizeBounds(180, 90, 640, 520)
-    else
-        if frame.SetMinResize then
-            frame:SetMinResize(180, 90)
-        end
-        if frame.SetMaxResize then
-            frame:SetMaxResize(640, 520)
-        end
-    end
+    local titleHit = CreateFrame("Frame", nil, frame)
+    titleHit:SetPoint("TOPLEFT", 6, -2)
+    titleHit:SetPoint("TOPRIGHT", -22, -2)
+    titleHit:SetHeight(20)
+    titleHit:EnableMouse(true)
+    titleHit:SetScript("OnMouseDown", function()
+        frame:StartMoving()
+    end)
+    titleHit:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing()
+        ST:SaveDB()
+    end)
 
-    local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOPLEFT", 10, -8)
+    local title = titleHit:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("LEFT", 4, 0)
     title:SetText("Notes")
 
-    local scroll = CreateFrame("ScrollFrame", "SimpleToolsNotepadOverlayScroll", frame, "UIPanelScrollFrameTemplate")
+    local scroll = CreateFrame("ScrollFrame", "SimpleToolsNotepadOverlayScroll", frame)
     scroll:SetPoint("TOPLEFT", 8, -24)
-    scroll:SetPoint("BOTTOMRIGHT", -28, 16)
+    scroll:SetPoint("BOTTOMRIGHT", -8, 16)
+    scroll:EnableMouse(true)
+    scroll:EnableMouseWheel(true)
 
-    local child = CreateFrame("Frame", nil, scroll)
-    child:SetSize(220, 160)
-    scroll:SetScrollChild(child)
-
-    local body = child:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    body:SetPoint("TOPLEFT", 0, 0)
-    body:SetWidth(214)
-    body:SetJustifyH("LEFT")
-    body:SetJustifyV("TOP")
-    if body.SetWordWrap then
-        body:SetWordWrap(true)
-    end
-    body:SetText("No notes yet.")
-
-    local grip = CreateFrame("Button", nil, frame)
-    grip:SetSize(16, 16)
-    grip:SetPoint("BOTTOMRIGHT", -1, 1)
-    grip:SetFrameLevel(frame:GetFrameLevel() + 6)
-    grip:EnableMouse(true)
-    local up = "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up"
-    local hi = "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight"
-    local down = "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down"
-    grip:SetNormalTexture(up)
-    grip:SetHighlightTexture(hi)
-    grip:SetPushedTexture(down)
-    grip:SetScript("OnMouseDown", function()
-        frame:StartSizing("BOTTOMRIGHT")
+    local edit = CreateFrame("EditBox", "SimpleToolsNotepadOverlayEdit", scroll)
+    edit:SetMultiLine(true)
+    edit:SetAutoFocus(false)
+    edit:SetFontObject("ChatFontNormal")
+    edit:SetTextInsets(4, 4, 2, 2)
+    edit:SetWidth(240)
+    edit:SetHeight(160)
+    edit:SetScript("OnEscapePressed", function(selfBox)
+        selfBox:ClearFocus()
     end)
-    grip:SetScript("OnMouseUp", function()
-        frame:StopMovingOrSizing()
-        ST:LayoutNotepadProjected()
+    edit:SetScript("OnTextChanged", function(selfBox, userInput)
+        if not userInput then
+            return
+        end
+        ST.notepadText = selfBox:GetText()
+        if ST.notepadEditBox and not ST.notepadEditBox:HasFocus() then
+            ST.notepadEditBox:SetText(ST.notepadText)
+        end
+        ST:ScheduleSave()
+    end)
+    edit:SetScript("OnEditFocusLost", function()
         ST:SaveDB()
+    end)
+    edit:SetScript("OnCursorChanged", function(selfBox, _, y, _, cursorHeight)
+        local height = scroll:GetHeight() or 0
+        if height <= 0 then
+            return
+        end
+        local offset = -(y or 0)
+        local cursorBottom = offset + (cursorHeight or 14)
+        local current = scroll:GetVerticalScroll() or 0
+        if offset < current then
+            scroll:SetVerticalScroll(offset)
+        elseif cursorBottom > current + height then
+            scroll:SetVerticalScroll(cursorBottom - height)
+        end
+    end)
+
+    local function FocusNotes()
+        edit:SetFocus()
+    end
+    scroll:SetScript("OnMouseDown", FocusNotes)
+    scroll:SetScrollChild(edit)
+    scroll:SetScript("OnMouseWheel", function(selfObj, delta)
+        local maxScroll = selfObj:GetVerticalScrollRange() or 0
+        local nextScroll = math.min(maxScroll, math.max(0, selfObj:GetVerticalScroll() - delta * 18))
+        selfObj:SetVerticalScroll(nextScroll)
+    end)
+    scroll:SetScript("OnSizeChanged", function(selfScroll, width, height)
+        edit:SetWidth(math.max(80, (width or 200) - 4))
+        if (edit:GetHeight() or 0) < (height or 0) then
+            edit:SetHeight(math.max(height or 0, 20))
+        end
+    end)
+
+    self:AttachResizeGrip(frame, 180, 90, 640, 520, function()
+        ST:LayoutNotepadProjected()
     end)
 
     frame:SetScript("OnSizeChanged", function()
         ST:LayoutNotepadProjected()
     end)
 
-    self.notepadProjBody = body
-    self.notepadProjChild = child
+    self.notepadProjEdit = edit
+    self.notepadProjScroll = scroll
     self.notepadProjectedFrame = frame
 end
 
 function ST:LayoutNotepadProjected()
-    if not self.notepadProjectedFrame or not self.notepadProjBody then
+    if not self.notepadProjectedFrame or not self.notepadProjEdit then
         return
     end
-    local width = self.notepadProjectedFrame:GetWidth() or 260
-    local inner = math.max(80, width - 46)
-    self.notepadProjBody:SetWidth(inner)
-    if self.notepadProjChild then
-        self.notepadProjChild:SetWidth(inner)
+    local scroll = self.notepadProjScroll
+    if not scroll then
+        return
     end
-    self:UpdateNotepadProjected()
+    local width = scroll:GetWidth() or 220
+    self.notepadProjEdit:SetWidth(math.max(80, width - 4))
 end
 
 function ST:UpdateNotepadProjected()
-    if not self.notepadProjBody then
+    if not self.notepadProjEdit then
         return
     end
-    local text = self.notepadText or ""
-    if text == "" then
-        text = "No notes yet."
+    if self.notepadProjEdit:HasFocus() then
+        return
     end
-    self.notepadProjBody:SetText(text)
-    local height = 160
-    if self.notepadProjBody.GetStringHeight then
-        height = math.max(160, self.notepadProjBody:GetStringHeight() + 8)
-    end
-    if self.notepadProjChild then
-        self.notepadProjChild:SetHeight(height)
-    end
+    self.notepadProjEdit:SetText(self.notepadText or "")
 end
 
 function ST:ShowNotepadProjected(show, pos)
@@ -207,6 +226,7 @@ function ST:ShowNotepadProjected(show, pos)
         end
         self.notepadProjected = true
         self:LayoutNotepadProjected()
+        self:UpdateNotepadProjected()
     else
         self.notepadProjectedFrame:Hide()
         if self.notepadProjectButton then
