@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.4.0"
+ST.VERSION = "2.4.1"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -31,6 +31,7 @@ local DEFAULTS = {
         y = 0,
         selectedTab = 1,
         tabs = "v2",
+        compact241 = true,
         width = 540,
         height = 240,
     },
@@ -612,16 +613,15 @@ function ST:LoadState()
         self.frame:SetPoint(db.ui.point or "CENTER", UIParent, db.ui.relativePoint or "CENTER", db.ui.x or 0, db.ui.y or 0)
         local width = db.ui.width or ST.FRAME_W
         local height = db.ui.height or ST.FRAME_H
-        -- Old 2.3.3 default was 580×300; fold it into the compact size unless they resized.
-        if width == 580 and height == 300 then
+        -- Fold the old default and the resize-jump sizes back to compact once.
+        -- After this, a player resize is saved as usual.
+        if not db.ui.compact241 then
+            width, height = ST.FRAME_W, ST.FRAME_H
+            db.ui.compact241 = true
+        elseif width == 580 and height == 300 then
             width, height = ST.FRAME_W, ST.FRAME_H
         end
-        width = math.max(ST.FRAME_MIN_W, math.min(ST.FRAME_MAX_W, width))
-        height = math.max(ST.FRAME_MIN_H, math.min(ST.FRAME_MAX_H, height))
-        self.frame:SetSize(width, height)
-        if self.OnMainFrameSizeChanged then
-            self:OnMainFrameSizeChanged()
-        end
+        self:ApplyMainFrameSize(width, height)
     end
 
     if db.ui and db.ui.selectedTab then
@@ -1054,6 +1054,21 @@ function ST:SplitColumns(parent, count)
     return cols
 end
 
+function ST:ApplyMainFrameSize(width, height)
+    width = math.max(ST.FRAME_MIN_W, math.min(ST.FRAME_MAX_W, math.floor((width or ST.FRAME_W) + 0.5)))
+    height = math.max(ST.FRAME_MIN_H, math.min(ST.FRAME_MAX_H, math.floor((height or ST.FRAME_H) + 0.5)))
+    self.frameW, self.frameH = width, height
+    if not self.frame then
+        return
+    end
+    self.sizingApply = true
+    self.frame:SetSize(width, height)
+    self.sizingApply = false
+    if self.OnMainFrameSizeChanged then
+        self:OnMainFrameSizeChanged()
+    end
+end
+
 function ST:PinFrameForResize(frame)
     if not frame then
         return
@@ -1107,6 +1122,10 @@ function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
     end)
     grip:SetScript("OnMouseUp", function()
         frame:StopMovingOrSizing()
+        if ST.frame == frame then
+            ST.frameW = frame:GetWidth()
+            ST.frameH = frame:GetHeight()
+        end
         if onStop then
             onStop()
         end

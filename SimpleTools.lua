@@ -13,7 +13,8 @@ local TABS = {
 
 function ST:CreateMainFrame()
     local frame = self:CreateThemedPanel("SimpleToolsFrame")
-    frame:SetSize(ST.FRAME_W, ST.FRAME_H)
+    self.frame = frame
+    self:ApplyMainFrameSize(ST.FRAME_W, ST.FRAME_H)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -35,8 +36,16 @@ function ST:CreateMainFrame()
         ST:OnMainFrameSizeChanged()
         ST:ScheduleSave()
     end)
-
-    self.frame = frame
+    frame:HookScript("OnShow", function()
+        -- DefaultPanelTemplate can snap to a huge preferred size the first time
+        -- it is shown. Re-apply the compact (or player-resized) size after that.
+        local w, h = ST.frameW or ST.FRAME_W, ST.frameH or ST.FRAME_H
+        C_Timer.After(0, function()
+            if ST.frame and ST.frame:IsShown() then
+                ST:ApplyMainFrameSize(w, h)
+            end
+        end)
+    end)
     self.tabButtons = {}
     self.tabFrames = {}
 
@@ -407,8 +416,7 @@ function ST:RegisterSlash()
         elseif msg == "resetpos" then
             self.frame:ClearAllPoints()
             self.frame:SetPoint("CENTER")
-            self.frame:SetSize(ST.FRAME_W, ST.FRAME_H)
-            self:OnMainFrameSizeChanged()
+            self:ApplyMainFrameSize(ST.FRAME_W, ST.FRAME_H)
             self:SaveDB()
             self:Print("Window position and size reset.")
         else

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.1 — Compact default
+
+- `/tools` opens at 540×240. The oversized window from the old resize jump is folded back once; drag the corner later if you want it bigger. `/tools resetpos` also restores this size.
+
 ## 2.4.0 — Combined tabs, live overlays
 
 - Time tab: Timer, Stopwatch, and Reminder side by side. XP/Gold share one tab.
