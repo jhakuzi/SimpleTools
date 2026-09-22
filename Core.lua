@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.5"
+ST.VERSION = "2.3.6"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240

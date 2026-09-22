@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.6 — Notepad inset
+
+- Notepad sits in the same bronze inset box as the Shop list.
+
 ## 2.3.5 — Compact window
 
 - Default size is 540×240. Tabs shrink onto one centered row instead of wrapping Shop onto a second line. `/tools resetpos` restores this size. Existing 580×300 windows migrate once.

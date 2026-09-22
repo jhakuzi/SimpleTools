@@ -6,14 +6,23 @@ function ST:CreateSimpleNotepadUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local scrollFrame = CreateFrame("ScrollFrame", "SimpleToolsNotepadScrollFrame", frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 8, -6)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -28, 38)
+    local box = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    box:SetPoint("TOPLEFT", 8, -6)
+    box:SetPoint("BOTTOMRIGHT", -8, 38)
+    self:ApplyOverlayBackdrop(box)
+    box:EnableMouse(true)
+
+    local scrollFrame = CreateFrame("ScrollFrame", "SimpleToolsNotepadScrollFrame", box)
+    scrollFrame:SetPoint("TOPLEFT", 6, -4)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -6, 4)
+    scrollFrame:EnableMouse(true)
+    scrollFrame:EnableMouseWheel(true)
 
     local editBox = CreateFrame("EditBox", "SimpleToolsNotepadEditBox", scrollFrame)
     editBox:SetMultiLine(true)
     editBox:SetAutoFocus(false)
     editBox:SetFontObject("ChatFontNormal")
+    editBox:SetTextInsets(4, 4, 2, 2)
     editBox:SetWidth(440)
     editBox:SetHeight(200)
     editBox:SetScript("OnEscapePressed", function(selfBox)
@@ -30,14 +39,38 @@ function ST:CreateSimpleNotepadUI(parent)
     editBox:SetScript("OnEditFocusLost", function()
         ST:SaveDB()
     end)
-
-    scrollFrame:SetScript("OnMouseDown", function()
-        editBox:SetFocus()
+    editBox:SetScript("OnCursorChanged", function(selfBox, _, y, _, cursorHeight)
+        local height = scrollFrame:GetHeight() or 0
+        if height <= 0 then
+            return
+        end
+        local offset = -(y or 0)
+        local cursorBottom = offset + (cursorHeight or 14)
+        local current = scrollFrame:GetVerticalScroll() or 0
+        if offset < current then
+            scrollFrame:SetVerticalScroll(offset)
+        elseif cursorBottom > current + height then
+            scrollFrame:SetVerticalScroll(cursorBottom - height)
+        end
     end)
-    scrollFrame:SetScrollChild(editBox)
 
-    scrollFrame:SetScript("OnSizeChanged", function(selfScroll, width)
-        editBox:SetWidth(math.max(100, width - 4))
+    local function FocusNotes()
+        editBox:SetFocus()
+    end
+    box:SetScript("OnMouseDown", FocusNotes)
+    scrollFrame:SetScript("OnMouseDown", FocusNotes)
+    scrollFrame:SetScrollChild(editBox)
+    scrollFrame:SetScript("OnMouseWheel", function(selfObj, delta)
+        local maxScroll = selfObj:GetVerticalScrollRange() or 0
+        local nextScroll = math.min(maxScroll, math.max(0, selfObj:GetVerticalScroll() - delta * 18))
+        selfObj:SetVerticalScroll(nextScroll)
+    end)
+    scrollFrame:SetScript("OnSizeChanged", function(selfScroll, width, height)
+        editBox:SetWidth(math.max(100, (width or 200) - 4))
+        local textHeight = editBox:GetHeight() or 0
+        if textHeight < (height or 0) then
+            editBox:SetHeight(math.max(height or 0, 20))
+        end
     end)
 
     self.notepadClearButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
