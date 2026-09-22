@@ -40,13 +40,19 @@ function ST:CreateSimpleNotepadUI(parent)
         editBox:SetWidth(math.max(100, width - 4))
     end)
 
+    self.notepadClearButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.notepadClearButton:SetText("Clear")
+    self.notepadClearButton:SetScript("OnClick", function()
+        ST:ClearNotepad()
+    end)
+
     self.notepadProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    self.notepadProjectButton:SetSize(120, 25)
-    self.notepadProjectButton:SetPoint("BOTTOM", 0, 8)
     self.notepadProjectButton:SetText("Send to screen")
     self.notepadProjectButton:SetScript("OnClick", function()
         ST:ToggleNotepadProjected()
     end)
+
+    self:LayoutBottomPair(frame, self.notepadClearButton, self.notepadProjectButton)
 
     self.notepadEditBox = editBox
     self.simpleNotepadFrame = frame
@@ -175,6 +181,15 @@ function ST:ShowNotepadProjected(show, pos)
         end
         self.notepadProjected = false
     end
+end
+
+function ST:ClearNotepad()
+    self.notepadText = ""
+    if self.notepadEditBox then
+        self.notepadEditBox:SetText("")
+    end
+    self:UpdateNotepadProjected()
+    self:SaveDB()
 end
 
 function ST:ToggleNotepadProjected()

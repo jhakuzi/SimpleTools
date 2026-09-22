@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.1"
+ST.VERSION = "2.3.2"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -101,6 +101,11 @@ local DEFAULTS = {
     },
     shop = {
         items = {},
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 180,
+        projY = -80,
     },
 }
 
@@ -139,6 +144,7 @@ ST.reminder = { time = nil, set = false, lastFired = "" }
 ST.notepadText = ""
 ST.notepadProjected = false
 ST.shopItems = {}
+ST.shopProjected = false
 
 local function CopyDefaults(src, dest)
     dest = dest or {}
@@ -424,6 +430,12 @@ function ST:SaveDB()
 
     db.shop = db.shop or {}
     db.shop.items = CopyShopItems(self.shopItems)
+    local shopPoint, shopRel, shopX, shopY = SnapshotPoint(self.shopProjectedFrame, db.shop)
+    db.shop.projected = self.shopProjected
+    db.shop.projPoint = shopPoint
+    db.shop.projRelativePoint = shopRel
+    db.shop.projX = shopX
+    db.shop.projY = shopY
 
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
@@ -574,6 +586,10 @@ function ST:LoadState()
     self.shopItems = CopyShopItems(db.shop and db.shop.items)
     if self.RefreshShopList then
         self:RefreshShopList()
+    end
+    self.shopProjected = db.shop and db.shop.projected or false
+    if self.shopProjected and self.ShowShopProjected then
+        self:ShowShopProjected(true, db.shop)
     end
 
     if self.frame and db.ui then
@@ -936,4 +952,15 @@ function ST:LayoutTrackerButtons(parent, startBtn, projectBtn, resetBtn)
     startBtn:SetPoint("BOTTOM", parent, "BOTTOM", -(width + gap), bottom)
     projectBtn:SetPoint("BOTTOM", parent, "BOTTOM", 0, bottom)
     resetBtn:SetPoint("BOTTOM", parent, "BOTTOM", (width + gap), bottom)
+end
+
+function ST:LayoutBottomPair(parent, leftBtn, rightBtn)
+    local width, height, gap, bottom = 112, 25, 12, 8
+    leftBtn:SetSize(width, height)
+    rightBtn:SetSize(width, height)
+    leftBtn:ClearAllPoints()
+    rightBtn:ClearAllPoints()
+    local offset = (width + gap) / 2
+    leftBtn:SetPoint("BOTTOM", parent, "BOTTOM", -offset, bottom)
+    rightBtn:SetPoint("BOTTOM", parent, "BOTTOM", offset, bottom)
 end

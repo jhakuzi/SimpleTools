@@ -928,12 +928,18 @@ function ST:CreateSimpleShopUI(parent)
     self.shopEmpty:SetText("List is empty.")
 
     local clear = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-    clear:SetSize(90, 25)
-    clear:SetPoint("BOTTOM", 0, 8)
     clear:SetText("Clear list")
     clear:SetScript("OnClick", function()
         ST:ClearShopList()
     end)
+
+    self.shopProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.shopProjectButton:SetText("Send to screen")
+    self.shopProjectButton:SetScript("OnClick", function()
+        ST:ToggleShopProjected()
+    end)
+
+    self:LayoutBottomPair(frame, clear, self.shopProjectButton)
 
     frame:SetScript("OnHide", function()
         ST:HideShopProfMenu()
@@ -943,6 +949,36 @@ function ST:CreateSimpleShopUI(parent)
     self:HookShopClicks()
     self:RefreshShopList()
     return frame
+end
+
+function ST:BindShopEntryRow(row)
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    row:SetScript("OnEnter", function(selfObj)
+        if selfObj.entry then
+            GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
+            if selfObj.entry.link then
+                GameTooltip:SetHyperlink(selfObj.entry.link)
+            else
+                GameTooltip:SetText(selfObj.entry.name or "Item")
+            end
+            GameTooltip:AddLine("Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
+            GameTooltip:Show()
+        end
+    end)
+    row:SetScript("OnLeave", GameTooltip_Hide)
+    row:SetScript("OnClick", function(selfObj, button)
+        if button == "RightButton" then
+            ST:RemoveShopItem(selfObj.index)
+            return
+        end
+        if IsShiftKeyDown() then
+            ST:ShopSearchAH(selfObj.entry)
+        elseif selfObj.entry and selfObj.entry.link and SetItemRef then
+            SetItemRef(selfObj.entry.link:match("|H(.-)|h") or selfObj.entry.link, selfObj.entry.link, button)
+        else
+            ST:ShopSearchAH(selfObj.entry)
+        end
+    end)
 end
 
 function ST:AcquireShopRow(i)
@@ -955,7 +991,6 @@ function ST:AcquireShopRow(i)
     row:SetHeight(ROW_HEIGHT)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
-    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", 4, 0)
@@ -975,27 +1010,7 @@ function ST:AcquireShopRow(i)
         ST:RemoveShopItem(row.index)
     end)
 
-    row:SetScript("OnEnter", function(selfObj)
-        if selfObj.entry and selfObj.entry.link then
-            GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
-            GameTooltip:SetHyperlink(selfObj.entry.link)
-            GameTooltip:AddLine("Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
-            GameTooltip:Show()
-        end
-    end)
-    row:SetScript("OnLeave", GameTooltip_Hide)
-    row:SetScript("OnClick", function(selfObj, button)
-        if button == "RightButton" then
-            ST:RemoveShopItem(selfObj.index)
-            return
-        end
-        if IsShiftKeyDown() then
-            ST:ShopSearchAH(selfObj.entry)
-        elseif selfObj.entry and selfObj.entry.link and SetItemRef then
-            SetItemRef(selfObj.entry.link:match("|H(.-)|h") or selfObj.entry.link, selfObj.entry.link, button)
-        end
-    end)
-
+    self:BindShopEntryRow(row)
     self.shopListRows[i] = row
     return row
 end
@@ -1026,6 +1041,7 @@ function ST:RefreshShopList()
         self.shopEmpty:SetShown(shown == 0)
     end
     self.shopListChild:SetHeight(math.max(20, shown * ROW_HEIGHT + 4))
+    self:RefreshShopProjected()
 end
 
 function ST:HookShopClicks()
@@ -1064,4 +1080,127 @@ function ST:HookShopClicks()
             return orig(link, ...)
         end
     end
+end
+
+function ST:CreateShopProjectedFrame()
+    local frame = self:CreateOverlayFrame("SimpleShopProjectedFrame", 220, 140, 180, -80, "Shop", function()
+        ST:ShowShopProjected(false)
+    end)
+    frame.overlayHint = "Shift-click a row to paste into AH search. Drag to move. Hover for × to hide."
+
+    local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", 10, -8)
+    title:SetText("Shop")
+
+    local scroll = CreateFrame("ScrollFrame", "SimpleToolsShopOverlayScroll", frame)
+    scroll:SetPoint("TOPLEFT", 8, -24)
+    scroll:SetPoint("BOTTOMRIGHT", -8, 8)
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(selfObj, delta)
+        local maxScroll = selfObj:GetVerticalScrollRange() or 0
+        local nextScroll = math.min(maxScroll, math.max(0, selfObj:GetVerticalScroll() - delta * 18))
+        selfObj:SetVerticalScroll(nextScroll)
+    end)
+
+    local child = CreateFrame("Frame", nil, scroll)
+    child:SetSize(200, 20)
+    scroll:SetScrollChild(child)
+
+    self.shopProjEmpty = child:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    self.shopProjEmpty:SetPoint("TOPLEFT", 4, -4)
+    self.shopProjEmpty:SetText("List is empty.")
+
+    self.shopProjChild = child
+    self.shopProjRows = {}
+    self.shopProjectedFrame = frame
+end
+
+function ST:AcquireShopProjRow(i)
+    local row = self.shopProjRows[i]
+    if row then
+        return row
+    end
+    local child = self.shopProjChild
+    row = CreateFrame("Button", nil, child)
+    row:SetHeight(ROW_HEIGHT)
+    row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
+    row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
+
+    row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.text:SetPoint("LEFT", 4, 0)
+    row.text:SetPoint("RIGHT", -18, 0)
+    row.text:SetJustifyH("LEFT")
+    if row.text.SetWordWrap then
+        row.text:SetWordWrap(false)
+    end
+
+    row.remove = CreateFrame("Button", nil, row)
+    row.remove:SetSize(16, 16)
+    row.remove:SetPoint("RIGHT", -2, 0)
+    row.remove.label = row.remove:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.remove.label:SetPoint("CENTER")
+    row.remove.label:SetText("x")
+    row.remove:SetScript("OnClick", function()
+        ST:RemoveShopItem(row.index)
+    end)
+
+    self:BindShopEntryRow(row)
+    self.shopProjRows[i] = row
+    return row
+end
+
+function ST:RefreshShopProjected()
+    if not self.shopProjectedFrame then
+        return
+    end
+    local list = self.shopItems or {}
+    local shown = math.min(#list, MAX_ROWS)
+    for i = 1, math.max(shown, #(self.shopProjRows or {})) do
+        local row = self.shopProjRows[i]
+        if i <= shown then
+            row = self:AcquireShopProjRow(i)
+            local entry = list[i]
+            row.index = i
+            row.entry = entry
+            local link = entry.link or entry.name
+            row.text:SetText(tostring(entry.count) .. " x " .. link)
+            row:SetWidth(self.shopProjChild:GetWidth() or 200)
+            row:Show()
+        elseif row then
+            row:Hide()
+            row.entry = nil
+        end
+    end
+    if self.shopProjEmpty then
+        self.shopProjEmpty:SetShown(shown == 0)
+    end
+    self.shopProjChild:SetHeight(math.max(20, shown * ROW_HEIGHT + 4))
+    local height = math.min(280, math.max(80, 32 + math.max(1, shown) * ROW_HEIGHT + 10))
+    self.shopProjectedFrame:SetHeight(height)
+end
+
+function ST:ShowShopProjected(show, pos)
+    if not self.shopProjectedFrame then
+        self:CreateShopProjectedFrame()
+    end
+    if show then
+        self:PlaceOverlay(self.shopProjectedFrame, pos)
+        self.shopProjectedFrame:Show()
+        if self.shopProjectButton then
+            self.shopProjectButton:SetText("Unproject")
+        end
+        self.shopProjected = true
+        self:RefreshShopProjected()
+    else
+        self.shopProjectedFrame:Hide()
+        if self.shopProjectButton then
+            self.shopProjectButton:SetText("Send to screen")
+        end
+        self.shopProjected = false
+    end
+end
+
+function ST:ToggleShopProjected()
+    self:ShowShopProjected(not (self.shopProjectedFrame and self.shopProjectedFrame:IsShown()))
+    self:SaveDB()
 end

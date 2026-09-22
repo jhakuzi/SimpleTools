@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.2 — Notes clear, shop overlay
+
+- **Notepad** has a **Clear** button next to **Send to screen**.
+- **Shop** can be sent to the screen. The overlay lists `23 x [Item]` rows; shift-click a row to paste into AH search even with the window closed.
+
 ## 2.3.1 — Profession reagent menus
 
 - Shop tab: the demo ingredient chips are gone. Eight profession buttons (Alchemy, Smithing, Enchant, Engineer, Leather, Tailor, Cooking, First Aid) each open a dropdown of reagents.
