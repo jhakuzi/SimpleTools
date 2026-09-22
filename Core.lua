@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.2.3"
+ST.VERSION = "2.3.0"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -99,6 +99,9 @@ local DEFAULTS = {
         projWidth = 260,
         projHeight = 200,
     },
+    shop = {
+        items = {},
+    },
 }
 
 -- Runtime clocks (GetTime is session-local and MUST NOT be persisted)
@@ -135,6 +138,7 @@ ST.gather = {
 ST.reminder = { time = nil, set = false, lastFired = "" }
 ST.notepadText = ""
 ST.notepadProjected = false
+ST.shopItems = {}
 
 local function CopyDefaults(src, dest)
     dest = dest or {}
@@ -159,6 +163,24 @@ local function CopyItems(src)
                 name = v.name,
                 count = tonumber(v.count) or 0,
                 kind = v.kind,
+            }
+        end
+    end
+    return out
+end
+
+local function CopyShopItems(src)
+    local out = {}
+    if type(src) ~= "table" then
+        return out
+    end
+    for i, v in ipairs(src) do
+        if type(v) == "table" then
+            out[i] = {
+                id = tonumber(v.id) or 0,
+                name = v.name or "Item",
+                link = v.link,
+                count = tonumber(v.count) or 1,
             }
         end
     end
@@ -400,6 +422,9 @@ function ST:SaveDB()
         db.notepad.projHeight = math.floor((self.notepadProjectedFrame:GetHeight() or 200) + 0.5)
     end
 
+    db.shop = db.shop or {}
+    db.shop.items = CopyShopItems(self.shopItems)
+
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
         if point then
@@ -544,6 +569,11 @@ function ST:LoadState()
     end
     if self.notepadProjected and self.ShowNotepadProjected then
         self:ShowNotepadProjected(true, db.notepad)
+    end
+
+    self.shopItems = CopyShopItems(db.shop and db.shop.items)
+    if self.RefreshShopList then
+        self:RefreshShopList()
     end
 
     if self.frame and db.ui then

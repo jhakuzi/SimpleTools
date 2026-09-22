@@ -9,13 +9,14 @@ local TABS = {
     { key = "reminder", label = "Reminder",  width = 80 },
     { key = "xp",       label = "XP",        width = 50 },
     { key = "gold",     label = "Gold",      width = 54 },
-    { key = "gather",   label = "Gather",    width = 68 },
-    { key = "notepad",  label = "Notepad",   width = 76 },
+    { key = "gather",   label = "Gather",    width = 62 },
+    { key = "notepad",  label = "Notepad",   width = 70 },
+    { key = "shop",     label = "Shop",      width = 50 },
 }
 
 function ST:CreateMainFrame()
     local frame = self:CreateThemedPanel("SimpleToolsFrame")
-    frame:SetSize(560, 300)
+    frame:SetSize(580, 300)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -63,6 +64,7 @@ function ST:CreateMainFrame()
     self.tabFrames[5] = self:CreateSimpleGoldUI(self.contentFrame)
     self.tabFrames[6] = self:CreateSimpleGatherUI(self.contentFrame)
     self.tabFrames[7] = self:CreateSimpleNotepadUI(self.contentFrame)
+    self.tabFrames[8] = self:CreateSimpleShopUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleWatchFrame = self.tabFrames[2]
@@ -71,6 +73,7 @@ function ST:CreateMainFrame()
     self.simpleGoldFrame = self.tabFrames[5]
     self.simpleGatherFrame = self.tabFrames[6]
     self.simpleNotepadFrame = self.tabFrames[7]
+    self.shopFrame = self.tabFrames[8]
 
     self:SelectTab(1)
     frame:Hide()

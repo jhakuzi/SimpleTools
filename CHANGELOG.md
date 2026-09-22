@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0 — Shopping list
+
+- **Shop** tab: Shift-click an item from bags (with the Shop tab open) and enter a quantity. Rows show `23 x [Item]`.
+- Shift-click a row to paste the item name into the auction house search (retail AH or classic browse). Right-click or **x** removes a row.
+
 ## 2.2.3 — Forever brown metal frames
 
 - Main window uses Blizzard's `DefaultPanelTemplate` (the same brown metal nine-slice Forever and Midnight windows use). Falls back to the old inset frame if a client is missing it.
