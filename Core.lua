@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.3"
+ST.VERSION = "2.3.4"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime

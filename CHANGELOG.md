@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.4 — Centered tabs
+
+- Tab buttons sit as a centered group. If they wrap (narrow window, or more tabs later) each row stays centered instead of leaving a hole on the right.
+
 ## 2.3.3 — Resizable main window
 
 - Drag the bottom-right corner to resize SimpleTools. Min 560×260, max 900×640. Size is saved. `/tools resetpos` restores the default 580×300 as well as position.

@@ -43,26 +43,20 @@ function ST:CreateMainFrame()
     self.tabButtons = {}
     self.tabFrames = {}
 
-    local prev
     for i, tab in ipairs(TABS) do
         local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
         btn:SetSize(tab.width, 20)
-        if prev then
-            btn:SetPoint("LEFT", prev, "RIGHT", 2, 0)
-        else
-            btn:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -32)
-        end
         btn:SetText(tab.label)
         btn:SetScript("OnClick", function()
             self:SelectTab(i)
         end)
         self.tabButtons[i] = btn
-        prev = btn
     end
 
     self.contentFrame = CreateFrame("Frame", nil, frame)
     self.contentFrame:SetPoint("TOPLEFT", 10, -56)
     self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 10)
+    self:LayoutTabButtons()
 
     self.tabFrames[1] = self:CreateTimerUI(self.contentFrame)
     self.tabFrames[2] = self:CreateSimpleWatchUI(self.contentFrame)
@@ -86,7 +80,52 @@ function ST:CreateMainFrame()
     frame:Hide()
 end
 
+function ST:LayoutTabButtons()
+    local frame = self.frame
+    local buttons = self.tabButtons
+    if not frame or not buttons or #buttons == 0 then
+        return
+    end
+    local frameWidth = frame:GetWidth() or 580
+    local inner = math.max(200, frameWidth - 24)
+    local gap, height, rowGap, top = 2, 20, 4, 32
+    local i, rows, y = 1, 0, -top
+    while i <= #buttons do
+        local rowWidth, count = 0, 0
+        for j = i, #buttons do
+            local w = buttons[j]:GetWidth() or 50
+            local nextWidth = count == 0 and w or (rowWidth + gap + w)
+            if count > 0 and nextWidth > inner then
+                break
+            end
+            rowWidth = nextWidth
+            count = count + 1
+        end
+        if count < 1 then
+            count = 1
+            rowWidth = buttons[i]:GetWidth() or 50
+        end
+        local x = (frameWidth - rowWidth) / 2
+        for k = 0, count - 1 do
+            local btn = buttons[i + k]
+            btn:ClearAllPoints()
+            btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+            x = x + (btn:GetWidth() or 50) + gap
+        end
+        i = i + count
+        rows = rows + 1
+        y = y - height - rowGap
+    end
+    if self.contentFrame then
+        local inset = top + rows * (height + rowGap) + 2
+        self.contentFrame:ClearAllPoints()
+        self.contentFrame:SetPoint("TOPLEFT", 10, -inset)
+        self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 10)
+    end
+end
+
 function ST:OnMainFrameSizeChanged()
+    self:LayoutTabButtons()
     if self.LayoutShopProfButtons then
         self:LayoutShopProfButtons()
     end
