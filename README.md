@@ -2,7 +2,7 @@
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
-Timer, stopwatch, daily reminder, notepad, XP/hr, gold/hr, and gathering nodes/hr. Overlays can be sent to the screen and keep running while the window is closed.
+Timer, stopwatch, daily reminder, notepad, shopping list, XP/hr, gold/hr, and gathering nodes/hr. Overlays can be sent to the screen and keep running while the window is closed.
 
 ## Install
 
@@ -35,10 +35,20 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 - **Gold** — session gold and gold/hr; **Send to screen** overlay
 - **Gather** — nodes/hr for herbalism, mining, and skinning; session list of herbs, ores, and leather; **Send to screen** overlay
 - **Notepad** — notes persist (debounced save); **Send to screen** HUD so you can close the window
+- **Shop** — shift-click bag items in (Shop tab open), type a quantity, rows show `23 x [Item]`; shift-click a row to paste into auction house search
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
 
 State survives `/reload` and logout. Saved variables migrate from 1.x automatically; running timers are re-anchored because `GetTime()` resets on reload.
+
+## Shop list
+
+Open the **Shop** tab, then shift-click items from bags, loot, or chat. A prompt asks how many. Matching items stack on the same row.
+
+- Shift-click a row with the auction house open to fill the search box and run the search
+- Right-click a row (or the **x**) to remove it
+- **Clear list** wipes the list
+- Shift-click is only intercepted while the Shop tab is visible, so AH and chat still work on other tabs
 
 ## Gather tracking
 
@@ -50,7 +60,7 @@ State survives `/reload` and logout. Saved variables migrate from 1.x automatica
 
 Forever uses Mainline’s 12.1.5-era API, including secret values. SimpleTools never reads combat data. XP and gold go through `issecretvalue` guards so a secret return cannot error the Lua VM.
 
-See [CHANGELOG.md](CHANGELOG.md) for the 2.0 refactor and 2.1 overlay/gather work.
+See [CHANGELOG.md](CHANGELOG.md) for the 2.0 refactor and later overlay / shop work.
 
 ## License
 
