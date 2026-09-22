@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.3 — Resizable main window
+
+- Drag the bottom-right corner to resize SimpleTools. Min 560×260, max 900×640. Size is saved. `/tools resetpos` restores the default 580×300 as well as position.
+- Shop profession buttons stretch with the width. Gather / notepad / shop lists already grow with the height, so extra space goes to the list instead of empty chrome.
+
 ## 2.3.2 — Notes clear, shop overlay
 
 - **Notepad** has a **Clear** button next to **Send to screen**.

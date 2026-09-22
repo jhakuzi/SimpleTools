@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.3.2"
+ST.VERSION = "2.3.3"
 ST.DB_VERSION = 2
 
 local GetTime = GetTime
@@ -24,6 +24,8 @@ local DEFAULTS = {
         x = 0,
         y = 0,
         selectedTab = 1,
+        width = 580,
+        height = 300,
     },
     options = {
         sound = true,
@@ -445,6 +447,8 @@ function ST:SaveDB()
             db.ui.x = x
             db.ui.y = y
         end
+        db.ui.width = math.floor((self.frame:GetWidth() or 580) + 0.5)
+        db.ui.height = math.floor((self.frame:GetHeight() or 300) + 0.5)
     end
 end
 
@@ -595,6 +599,14 @@ function ST:LoadState()
     if self.frame and db.ui then
         self.frame:ClearAllPoints()
         self.frame:SetPoint(db.ui.point or "CENTER", UIParent, db.ui.relativePoint or "CENTER", db.ui.x or 0, db.ui.y or 0)
+        local width = db.ui.width or 580
+        local height = db.ui.height or 300
+        width = math.max(560, math.min(900, width))
+        height = math.max(260, math.min(640, height))
+        self.frame:SetSize(width, height)
+        if self.OnMainFrameSizeChanged then
+            self:OnMainFrameSizeChanged()
+        end
     end
 
     if db.ui and db.ui.selectedTab then
@@ -963,4 +975,41 @@ function ST:LayoutBottomPair(parent, leftBtn, rightBtn)
     local offset = (width + gap) / 2
     leftBtn:SetPoint("BOTTOM", parent, "BOTTOM", -offset, bottom)
     rightBtn:SetPoint("BOTTOM", parent, "BOTTOM", offset, bottom)
+end
+
+function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
+    if not frame then
+        return
+    end
+    frame:SetResizable(true)
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(minW, minH, maxW, maxH)
+    else
+        if frame.SetMinResize then
+            frame:SetMinResize(minW, minH)
+        end
+        if frame.SetMaxResize then
+            frame:SetMaxResize(maxW, maxH)
+        end
+    end
+    local grip = CreateFrame("Button", nil, frame)
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", -2, 2)
+    grip:SetFrameLevel(frame:GetFrameLevel() + 8)
+    grip:EnableMouse(true)
+    grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    grip:SetScript("OnMouseDown", function()
+        frame:StartSizing("BOTTOMRIGHT")
+    end)
+    grip:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing()
+        if onStop then
+            onStop()
+        end
+        ST:SaveDB()
+    end)
+    frame.resizeGrip = grip
+    return grip
 end

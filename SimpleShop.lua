@@ -892,9 +892,6 @@ function ST:CreateSimpleShopUI(parent)
         local prof = self.SHOP_PROFESSIONS[key]
         local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
         btn:SetSize(PROF_BTN_W, PROF_BTN_H)
-        local col = (i - 1) % 4
-        local row = math.floor((i - 1) / 4)
-        btn:SetPoint("TOPLEFT", 8 + col * (PROF_BTN_W + PROF_GAP), -20 - row * (PROF_BTN_H + PROF_GAP))
         btn:SetText(prof.label)
         btn:SetScript("OnClick", function(selfBtn)
             ST:ToggleShopProfMenu(key, selfBtn)
@@ -946,9 +943,29 @@ function ST:CreateSimpleShopUI(parent)
     end)
 
     self.shopFrame = frame
+    self:LayoutShopProfButtons()
     self:HookShopClicks()
     self:RefreshShopList()
     return frame
+end
+
+function ST:LayoutShopProfButtons()
+    local frame = self.shopFrame
+    local buttons = self.shopProfButtons
+    if not frame or not buttons then
+        return
+    end
+    local inner = math.max(400, (frame:GetWidth() or 560) - 16)
+    local gap = PROF_GAP
+    local width = math.floor((inner - 3 * gap) / 4)
+    width = math.max(96, math.min(168, width))
+    for i, btn in ipairs(buttons) do
+        local col = (i - 1) % 4
+        local row = math.floor((i - 1) / 4)
+        btn:SetSize(width, PROF_BTN_H)
+        btn:ClearAllPoints()
+        btn:SetPoint("TOPLEFT", 8 + col * (width + gap), -20 - row * (PROF_BTN_H + gap))
+    end
 end
 
 function ST:BindShopEntryRow(row)

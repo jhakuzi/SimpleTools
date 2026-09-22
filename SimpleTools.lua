@@ -31,6 +31,13 @@ function ST:CreateMainFrame()
     tinsert(UISpecialFrames, "SimpleToolsFrame")
     self:SetPanelTitle(frame, "SimpleTools")
     self:EnsurePanelClose(frame)
+    self:AttachResizeGrip(frame, 560, 260, 900, 640, function()
+        ST:OnMainFrameSizeChanged()
+    end)
+    frame:SetScript("OnSizeChanged", function()
+        ST:OnMainFrameSizeChanged()
+        ST:ScheduleSave()
+    end)
 
     self.frame = frame
     self.tabButtons = {}
@@ -77,6 +84,15 @@ function ST:CreateMainFrame()
 
     self:SelectTab(1)
     frame:Hide()
+end
+
+function ST:OnMainFrameSizeChanged()
+    if self.LayoutShopProfButtons then
+        self:LayoutShopProfButtons()
+    end
+    if self.shopListChild and self.RefreshShopList then
+        self:RefreshShopList()
+    end
 end
 
 function ST:SelectTab(id)
@@ -283,8 +299,10 @@ function ST:RegisterSlash()
         elseif msg == "resetpos" then
             self.frame:ClearAllPoints()
             self.frame:SetPoint("CENTER")
+            self.frame:SetSize(580, 300)
+            self:OnMainFrameSizeChanged()
             self:SaveDB()
-            self:Print("Window position reset.")
+            self:Print("Window position and size reset.")
         else
             self:ToggleWindow()
         end

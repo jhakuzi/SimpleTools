@@ -1,4 +1,4 @@
-# SimpleTools 2.3.2
+# SimpleTools 2.3.3
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -22,7 +22,7 @@ If the addon list marks it out of date, the Camelot TOC (`SimpleTools_Camelot.to
 | --- | --- |
 | `/tools` `/simpletools` `/st` | Toggle the window |
 | `/tools options` | Open the Settings panel |
-| `/tools resetpos` | Recenter the window |
+| `/tools resetpos` | Recenter the window and restore default size |
 
 Esc also closes the window. Left-click the minimap button or the addon compartment entry to toggle; right-click the minimap button for settings.
 
@@ -38,6 +38,8 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 - **Shop** — shift-click bag items in (Shop tab open), or pick a reagent from a profession dropdown; type a quantity; rows show `23 x [Item]`; **Send to screen** overlay; shift-click a row (window or overlay) to paste into auction house search
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
+
+The main window is resizable from the bottom-right corner. Size is saved; `/tools resetpos` restores 580×300.
 
 State survives `/reload` and logout. Saved variables migrate from 1.x automatically; running timers are re-anchored because `GetTime()` resets on reload.
 
