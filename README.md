@@ -1,4 +1,4 @@
-# SimpleTools 2.3.0
+# SimpleTools 2.3.1
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -35,7 +35,7 @@ Esc also closes the window. Left-click the minimap button or the addon compartme
 - **Gold** — session gold and gold/hr; **Send to screen** overlay
 - **Gather** — nodes/hr for herbalism, mining, and skinning; session list of herbs, ores, and leather; **Send to screen** overlay
 - **Notepad** — notes persist (debounced save); **Send to screen** HUD so you can close the window
-- **Shop** — shift-click bag items in (Shop tab open), type a quantity, rows show `23 x [Item]`; shift-click a row to paste into auction house search
+- **Shop** — shift-click bag items in (Shop tab open), or pick a reagent from a profession dropdown; type a quantity; rows show `23 x [Item]`; shift-click a row to paste into auction house search
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
 
@@ -43,7 +43,12 @@ State survives `/reload` and logout. Saved variables migrate from 1.x automatica
 
 ## Shop list
 
-Open the **Shop** tab, then shift-click items from bags, loot, or chat. A prompt asks how many. Matching items stack on the same row.
+Open the **Shop** tab. Add items two ways:
+
+- Shift-click from bags, loot, or chat
+- Click a profession button and pick a reagent from the dropdown
+
+A prompt asks how many. Matching items stack on the same row. Reagent lists cover Alchemy, Blacksmithing, Enchanting (including Forever's Mote of Magic), Engineering, Leatherworking, Tailoring, Cooking, and First Aid.
 
 - Shift-click a row with the auction house open to fill the search box and run the search
 - Right-click a row (or the **x**) to remove it

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1 — Profession reagent menus
+
+- Shop tab: the demo ingredient chips are gone. Eight profession buttons (Alchemy, Smithing, Enchant, Engineer, Leather, Tailor, Cooking, First Aid) each open a dropdown of reagents.
+- Pick a reagent, type a quantity — same `23 x [Item]` row as shift-click from bags. Forever's **Mote of Magic** is in the Enchanting list.
+
 ## 2.3.0 — Shopping list
 
 - **Shop** tab: Shift-click an item from bags (with the Shop tab open) and enter a quantity. Rows show `23 x [Item]`.
