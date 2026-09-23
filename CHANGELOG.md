@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.1 — Ping wheel removed
+
+- The Ping tab is gone. Forever already has the ping wheel in the client.
+
 ## 2.5.0 — Ping wheel
 
 - JhakPing is now the Ping tab. Click the bind slot, press a key, right-click to clear. Quick tap and Preview sit on the same tab. `/jp` opens it. Disable the old JhakPing addon so the two don't fight over the same key.
