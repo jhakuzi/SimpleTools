@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.4.2"
+ST.VERSION = "2.5.1"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -629,6 +629,9 @@ function ST:LoadState()
             local legacy = { 1, 1, 1, 2, 2, 3, 4, 5 }
             db.ui.selectedTab = legacy[db.ui.selectedTab] or 1
             db.ui.tabs = "v2"
+        end
+        if db.ui.selectedTab > #self.tabFrames then
+            db.ui.selectedTab = 1
         end
         self:SelectTab(db.ui.selectedTab)
     end

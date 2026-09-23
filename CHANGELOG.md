@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.1 — Ping wheel removed
+
+- The Ping tab is gone. Forever already has the ping wheel in the client.
+
+## 2.5.0 — Ping wheel
+
+- JhakPing is now the Ping tab. Click the bind slot, press a key, right-click to clear. Quick tap and Preview sit on the same tab. `/jp` opens it. Disable the old JhakPing addon so the two don't fight over the same key.
+
 ## 2.4.2 — Compartment icon
 
 - New anvil / pick / scroll icon in the addon compartment (64×64 TGA, drawn at 32px). The floating minimap button is gone; `/tools` or the compartment entry still opens the window.
