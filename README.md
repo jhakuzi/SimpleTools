@@ -1,4 +1,4 @@
-# SimpleTools 2.4.2
+# SimpleTools 2.5.0
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -21,6 +21,7 @@ If the addon list marks it out of date, the Camelot TOC (`SimpleTools_Camelot.to
 | Command | Action |
 | --- | --- |
 | `/tools` `/simpletools` `/st` | Toggle the window |
+| `/jp` `/jhakping` | Open the Ping tab |
 | `/tools options` | Open the Settings panel |
 | `/tools resetpos` | Recenter the window and restore default size |
 
@@ -33,6 +34,7 @@ Esc also closes the window. Open from the addon compartment (minimap cluster dro
 - **Gather** — nodes/hr for herbalism, mining, and skinning; session list of herbs, ores, and leather; **Send to screen** overlay
 - **Notepad** — notes persist (debounced save); **Clear** plus an **editable** **Send to screen** HUD
 - **Shop** — shift-click bag items or pick a profession reagent; edit qty on the list or overlay; shift-click a row into auction house search
+- **Ping** — hold a key, aim, release to send Attack, Warning, Assist, On My Way, or a quick contextual ping. Bind the key on the tab. Disable the standalone JhakPing addon.
 
 Overlays are draggable, clamped, and remember position. Trackers keep ticking after you hide SimpleTools.
 

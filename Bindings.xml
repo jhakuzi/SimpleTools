@@ -1,0 +1,3 @@
+<Bindings>
+	<Binding name="CLICK JhakPingCatcher:LeftButton" header="JHAKPING" runOnUp="true"/>
+</Bindings>

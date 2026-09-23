@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.4.2"
+ST.VERSION = "2.5.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -62,6 +62,7 @@ local DEFAULTS = {
         projY = 60,
     },
     reminder = { time = nil, set = false },
+    ping = { quickTap = true },
     xp = {
         running = false,
         elapsed = 0,

@@ -1,11 +1,12 @@
 ## Interface: 16001
 ## Title: SimpleTools
-## Notes: Timers, XP/gold/gather trackers, shopping list, reminders, and notes for WoW Forever.
+## Notes: Timers, XP/gold/gather trackers, shopping list, reminders, notes, and a ping wheel for WoW Forever.
 ## Author: Jhakuzi
-## Version: 2.4.2
+## Version: 2.5.0
 ## IconTexture: Interface\AddOns\SimpleTools\Media\icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB
+## SavedVariablesPerCharacter: JhakPingDB
 ## Category: Miscellaneous
 ## DefaultState: enabled
 ## AllowLoadGameType: camelot
@@ -20,3 +21,4 @@ SimpleGold.lua
 SimpleGather.lua
 SimpleNotepad.lua
 SimpleShop.lua
+SimplePing.lua
