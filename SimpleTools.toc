@@ -1,10 +1,10 @@
 ## Interface: 120100
 ## Interface-Camelot: 16001
 ## Title: SimpleTools
-## Notes: Timers, XP/gold/gather trackers, reminders, and notes. Midnight and WoW Forever.
+## Notes: Timers, XP/gold/gather trackers, shopping list, reminders, and notes. Midnight and WoW Forever.
 ## Author: Jhakuzi
-## Version: 2.2.1
-## IconTexture: Interface\AddOns\SimpleTools\Media\2-icon
+## Version: 2.4.2
+## IconTexture: Interface\AddOns\SimpleTools\Media\icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB
 ## Category: Miscellaneous
@@ -19,3 +19,4 @@ SimpleXP.lua
 SimpleGold.lua
 SimpleGather.lua
 SimpleNotepad.lua
+SimpleShop.lua

@@ -14,28 +14,28 @@ function ST:CreateSimpleXPUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local gainedLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    gainedLabel:SetPoint("TOP", 0, -6)
-    gainedLabel:SetText("XP gained")
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("XP")
 
     self.xpGainedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.xpGainedDisplay:SetPoint("TOP", 0, -22)
+    self.xpGainedDisplay:SetPoint("TOP", 0, -18)
     self.xpGainedDisplay:SetText("0")
 
-    self.xpPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.xpPerHourDisplay:SetPoint("TOP", 0, -44)
+    self.xpPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.xpPerHourDisplay:SetPoint("TOP", 0, -40)
     self.xpPerHourDisplay:SetText("XP/hr: 0")
 
-    self.xpTimeToLevelDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -62)
+    self.xpTimeToLevelDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -54)
     self.xpTimeToLevelDisplay:SetText("TTL: --:--:--")
 
     self.xpRestedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.xpRestedDisplay:SetPoint("TOP", 0, -80)
+    self.xpRestedDisplay:SetPoint("TOP", 0, -68)
     self.xpRestedDisplay:SetText("Rested: --")
 
-    self.xpElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.xpElapsedDisplay:SetPoint("TOP", 0, -96)
+    self.xpElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.xpElapsedDisplay:SetPoint("TOP", 0, -82)
     self.xpElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.xpProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
@@ -56,7 +56,7 @@ function ST:CreateSimpleXPUI(parent)
         ST:ResetXPTracker()
     end)
 
-    self:LayoutTrackerButtons(frame, self.xpStartPauseButton, self.xpProjectButton, self.xpResetButton)
+    self:LayoutColumnButtons(frame, self.xpStartPauseButton, self.xpProjectButton, self.xpResetButton)
 
     return frame
 end
@@ -247,18 +247,7 @@ function ST:CreateXPProjectedFrame()
         selfObj:StopMovingOrSizing()
         ST:SaveDB()
     end)
-    if frame.SetBackdrop then
-        frame:SetBackdrop({
-            bgFile = "Interface\\Buttons\\WHITE8x8",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true,
-            tileSize = 8,
-            edgeSize = 12,
-            insets = { left = 2, right = 2, top = 2, bottom = 2 },
-        })
-        frame:SetBackdropColor(0, 0, 0, 0.45)
-        frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.6)
-    end
+    self:ApplyOverlayBackdrop(frame)
 
     self.xpProjGained = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjGained:SetPoint("TOP", 0, -8)

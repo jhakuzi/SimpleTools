@@ -7,8 +7,14 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.2.1"
+ST.VERSION = "2.4.2"
 ST.DB_VERSION = 2
+ST.FRAME_W = 540
+ST.FRAME_H = 240
+ST.FRAME_MIN_W = 480
+ST.FRAME_MIN_H = 220
+ST.FRAME_MAX_W = 900
+ST.FRAME_MAX_H = 640
 
 local GetTime = GetTime
 local CreateFrame = CreateFrame
@@ -24,6 +30,10 @@ local DEFAULTS = {
         x = 0,
         y = 0,
         selectedTab = 1,
+        tabs = "v2",
+        compact241 = true,
+        width = 540,
+        height = 240,
     },
     options = {
         sound = true,
@@ -96,6 +106,16 @@ local DEFAULTS = {
         projRelativePoint = "CENTER",
         projX = 260,
         projY = 20,
+        projWidth = 260,
+        projHeight = 200,
+    },
+    shop = {
+        items = {},
+        projected = false,
+        projPoint = "CENTER",
+        projRelativePoint = "CENTER",
+        projX = 180,
+        projY = -80,
     },
 }
 
@@ -133,6 +153,8 @@ ST.gather = {
 ST.reminder = { time = nil, set = false, lastFired = "" }
 ST.notepadText = ""
 ST.notepadProjected = false
+ST.shopItems = {}
+ST.shopProjected = false
 
 local function CopyDefaults(src, dest)
     dest = dest or {}
@@ -157,6 +179,24 @@ local function CopyItems(src)
                 name = v.name,
                 count = tonumber(v.count) or 0,
                 kind = v.kind,
+            }
+        end
+    end
+    return out
+end
+
+local function CopyShopItems(src)
+    local out = {}
+    if type(src) ~= "table" then
+        return out
+    end
+    for i, v in ipairs(src) do
+        if type(v) == "table" then
+            out[i] = {
+                id = tonumber(v.id) or 0,
+                name = v.name or "Item",
+                link = v.link,
+                count = tonumber(v.count) or 1,
             }
         end
     end
@@ -393,6 +433,23 @@ function ST:SaveDB()
     db.notepad.projRelativePoint = noteRel
     db.notepad.projX = noteX
     db.notepad.projY = noteY
+    if self.notepadProjectedFrame then
+        db.notepad.projWidth = math.floor((self.notepadProjectedFrame:GetWidth() or 260) + 0.5)
+        db.notepad.projHeight = math.floor((self.notepadProjectedFrame:GetHeight() or 200) + 0.5)
+    end
+
+    db.shop = db.shop or {}
+    db.shop.items = CopyShopItems(self.shopItems)
+    local shopPoint, shopRel, shopX, shopY = SnapshotPoint(self.shopProjectedFrame, db.shop)
+    db.shop.projected = self.shopProjected
+    db.shop.projPoint = shopPoint
+    db.shop.projRelativePoint = shopRel
+    db.shop.projX = shopX
+    db.shop.projY = shopY
+    if self.shopProjectedFrame then
+        db.shop.projWidth = math.floor((self.shopProjectedFrame:GetWidth() or 220) + 0.5)
+        db.shop.projHeight = math.floor((self.shopProjectedFrame:GetHeight() or 140) + 0.5)
+    end
 
     if self.frame then
         local point, _, relativePoint, x, y = self.frame:GetPoint()
@@ -402,6 +459,8 @@ function ST:SaveDB()
             db.ui.x = x
             db.ui.y = y
         end
+        db.ui.width = math.floor((self.frame:GetWidth() or ST.FRAME_W) + 0.5)
+        db.ui.height = math.floor((self.frame:GetHeight() or ST.FRAME_H) + 0.5)
     end
 end
 
@@ -540,12 +599,37 @@ function ST:LoadState()
         self:ShowNotepadProjected(true, db.notepad)
     end
 
+    self.shopItems = CopyShopItems(db.shop and db.shop.items)
+    if self.RefreshShopList then
+        self:RefreshShopList()
+    end
+    self.shopProjected = db.shop and db.shop.projected or false
+    if self.shopProjected and self.ShowShopProjected then
+        self:ShowShopProjected(true, db.shop)
+    end
+
     if self.frame and db.ui then
         self.frame:ClearAllPoints()
         self.frame:SetPoint(db.ui.point or "CENTER", UIParent, db.ui.relativePoint or "CENTER", db.ui.x or 0, db.ui.y or 0)
+        local width = db.ui.width or ST.FRAME_W
+        local height = db.ui.height or ST.FRAME_H
+        -- Fold the old default and the resize-jump sizes back to compact once.
+        -- After this, a player resize is saved as usual.
+        if not db.ui.compact241 then
+            width, height = ST.FRAME_W, ST.FRAME_H
+            db.ui.compact241 = true
+        elseif width == 580 and height == 300 then
+            width, height = ST.FRAME_W, ST.FRAME_H
+        end
+        self:ApplyMainFrameSize(width, height)
     end
 
     if db.ui and db.ui.selectedTab then
+        if db.ui.tabs ~= "v2" then
+            local legacy = { 1, 1, 1, 2, 2, 3, 4, 5 }
+            db.ui.selectedTab = legacy[db.ui.selectedTab] or 1
+            db.ui.tabs = "v2"
+        end
         self:SelectTab(db.ui.selectedTab)
     end
 end
@@ -670,9 +754,6 @@ function ST:RegisterSettings()
             defaultValue
         )
         setting:SetValueChangedCallback(function()
-            if key == "minimap" then
-                self:UpdateMinimapButton()
-            end
             self:SaveDB()
         end)
         Settings.CreateCheckbox(category, setting, tooltip)
@@ -680,7 +761,6 @@ function ST:RegisterSettings()
 
     AddCheck("sound", "Play alert sounds", "Play a sound when a timer or reminder fires.", true)
     AddCheck("chat", "Chat messages", "Print timer, reminder, and load messages in chat.", true)
-    AddCheck("minimap", "Show minimap button", "Show a minimap button in addition to the addon compartment.", true)
 
     Settings.RegisterAddOnCategory(category)
     self.settingsCategory = category
@@ -698,20 +778,94 @@ function ST:OpenSettings()
     end
 end
 
-function ST:ApplyOverlayBackdrop(frame)
-    if not frame.SetBackdrop then
+function ST:TryCreateFrame(name, parent, template)
+    local ok, frame = pcall(CreateFrame, "Frame", name, parent, template)
+    if ok and frame then
+        return frame
+    end
+    return nil
+end
+
+function ST:TryCreateButton(name, parent, template)
+    local ok, btn = pcall(CreateFrame, "Button", name, parent, template)
+    if ok and btn then
+        return btn
+    end
+    return nil
+end
+
+-- Forever / Midnight windows use DefaultPanelTemplate (brown metal nine-slice).
+-- Fall back to the older inset frame if a client is missing the new kit.
+function ST:CreateThemedPanel(name, parent)
+    local frame = self:TryCreateFrame(name, parent or UIParent, "DefaultPanelTemplate")
+        or self:TryCreateFrame(name, parent or UIParent, "ButtonFrameTemplateNoPortrait")
+        or self:TryCreateFrame(name, parent or UIParent, "BasicFrameTemplateWithInset")
+    if not frame then
+        frame = CreateFrame("Frame", name, parent or UIParent, "BackdropTemplate")
+        self:ApplyOverlayBackdrop(frame)
+    end
+    return frame
+end
+
+function ST:SetPanelTitle(frame, text)
+    if not frame then
         return
     end
+    if frame.SetTitle then
+        frame:SetTitle(text)
+        return
+    end
+    if frame.TitleContainer and frame.TitleContainer.TitleText then
+        frame.TitleContainer.TitleText:SetText(text)
+        frame.title = frame.TitleContainer.TitleText
+        return
+    end
+    if frame.TitleText then
+        frame.TitleText:SetText(text)
+        frame.title = frame.TitleText
+        return
+    end
+    if not frame.title then
+        frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        frame.title:SetPoint("TOP", 0, -5)
+    end
+    frame.title:SetText(text)
+end
+
+function ST:EnsurePanelClose(frame)
+    if not frame or frame.CloseButton then
+        return
+    end
+    local close = self:TryCreateButton(nil, frame, "UIPanelCloseButtonDefaultAnchors")
+        or self:TryCreateButton(nil, frame, "UIPanelCloseButton")
+    if not close then
+        return
+    end
+    if not close:GetPoint() then
+        close:SetPoint("TOPRIGHT", -4, -5)
+    end
+    close:SetScript("OnClick", function()
+        frame:Hide()
+    end)
+    frame.CloseButton = close
+end
+
+function ST:ApplyOverlayBackdrop(frame)
+    if not frame or not frame.SetBackdrop then
+        return
+    end
+    -- Small HUDs can't use the 32px dialog nine-slice. Tint the thin tooltip
+    -- border bronze so it sits with Forever's brown metal instead of grey.
     frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true,
-        tileSize = 8,
+        tileSize = 16,
         edgeSize = 12,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
     })
-    frame:SetBackdropColor(0, 0, 0, 0.55)
-    frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.7)
+    frame:SetBackdropColor(0.18, 0.12, 0.06, 0.94)
+    frame:SetBackdropBorderColor(0.78, 0.58, 0.28, 0.95)
 end
 
 function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, tooltipTitle, onClose)
@@ -733,7 +887,7 @@ function ST:CreateOverlayFrame(globalName, width, height, defaultX, defaultY, to
         frame:SetScript("OnEnter", function(selfObj)
             GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
             GameTooltip:SetText(tooltipTitle)
-            GameTooltip:AddLine("Drag to move. Hover for × to hide. Close the window — this overlay stays.", 1, 1, 1, true)
+            GameTooltip:AddLine(selfObj.overlayHint or "Drag to move. Hover for × to hide. Close the window — this overlay stays.", 1, 1, 1, true)
             GameTooltip:Show()
         end)
         frame:SetScript("OnLeave", GameTooltip_Hide)
@@ -826,4 +980,153 @@ function ST:LayoutTrackerButtons(parent, startBtn, projectBtn, resetBtn)
     startBtn:SetPoint("BOTTOM", parent, "BOTTOM", -(width + gap), bottom)
     projectBtn:SetPoint("BOTTOM", parent, "BOTTOM", 0, bottom)
     resetBtn:SetPoint("BOTTOM", parent, "BOTTOM", (width + gap), bottom)
+end
+
+function ST:LayoutBottomPair(parent, leftBtn, rightBtn)
+    local width, height, gap, bottom = 112, 25, 12, 8
+    leftBtn:SetSize(width, height)
+    rightBtn:SetSize(width, height)
+    leftBtn:ClearAllPoints()
+    rightBtn:ClearAllPoints()
+    local offset = (width + gap) / 2
+    leftBtn:SetPoint("BOTTOM", parent, "BOTTOM", -offset, bottom)
+    rightBtn:SetPoint("BOTTOM", parent, "BOTTOM", offset, bottom)
+end
+
+function ST:LayoutColumnButtons(parent, ...)
+    local btns = { ... }
+    local function layout()
+        local pw = parent:GetWidth() or 120
+        local width = math.min(112, math.max(64, pw - 8))
+        local height, gap, bottom = 20, 3, 4
+        local y = bottom
+        for i = #btns, 1, -1 do
+            local btn = btns[i]
+            btn:SetSize(width, height)
+            btn:ClearAllPoints()
+            btn:SetPoint("BOTTOM", parent, "BOTTOM", 0, y)
+            y = y + height + gap
+        end
+    end
+    if not parent.stColumnButtonsHooked then
+        parent.stColumnButtonsHooked = true
+        parent:HookScript("OnSizeChanged", layout)
+    end
+    layout()
+end
+
+function ST:SplitColumns(parent, count)
+    local cols = {}
+    for i = 1, count do
+        cols[i] = CreateFrame("Frame", nil, parent)
+    end
+    local dividers = {}
+    for i = 1, count - 1 do
+        local line = parent:CreateTexture(nil, "ARTWORK")
+        line:SetColorTexture(0.78, 0.58, 0.28, 0.28)
+        line:SetWidth(1)
+        dividers[i] = line
+    end
+    local function layout()
+        local width = parent:GetWidth() or 400
+        local gap = 10
+        local colW = math.max(80, (width - gap * (count - 1)) / count)
+        for i, col in ipairs(cols) do
+            local x = (i - 1) * (colW + gap)
+            col:ClearAllPoints()
+            col:SetPoint("TOPLEFT", x, 0)
+            col:SetPoint("BOTTOMLEFT", x, 0)
+            col:SetWidth(colW)
+        end
+        for i, line in ipairs(dividers) do
+            local x = i * colW + (i - 1) * gap + gap / 2
+            line:ClearAllPoints()
+            line:SetPoint("TOPLEFT", parent, "TOPLEFT", x, -4)
+            line:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", x, 4)
+        end
+    end
+    parent:HookScript("OnSizeChanged", layout)
+    layout()
+    return cols
+end
+
+function ST:ApplyMainFrameSize(width, height)
+    width = math.max(ST.FRAME_MIN_W, math.min(ST.FRAME_MAX_W, math.floor((width or ST.FRAME_W) + 0.5)))
+    height = math.max(ST.FRAME_MIN_H, math.min(ST.FRAME_MAX_H, math.floor((height or ST.FRAME_H) + 0.5)))
+    self.frameW, self.frameH = width, height
+    if not self.frame then
+        return
+    end
+    self.sizingApply = true
+    self.frame:SetSize(width, height)
+    self.sizingApply = false
+    if self.OnMainFrameSizeChanged then
+        self:OnMainFrameSizeChanged()
+    end
+end
+
+function ST:PinFrameForResize(frame)
+    if not frame then
+        return
+    end
+    local left, bottom = frame:GetLeft(), frame:GetBottom()
+    local width, height = frame:GetWidth(), frame:GetHeight()
+    if not left or not bottom or not width or not height then
+        return
+    end
+    frame:ClearAllPoints()
+    frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    frame:SetSize(width, height)
+end
+
+function ST:AttachResizeGrip(frame, minW, minH, maxW, maxH, onStop)
+    if not frame then
+        return
+    end
+    if frame.ResizeButton then
+        frame.ResizeButton:Hide()
+        frame.ResizeButton:EnableMouse(false)
+    end
+    frame:SetResizable(true)
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(minW, minH, maxW, maxH)
+    else
+        if frame.SetMinResize then
+            frame:SetMinResize(minW, minH)
+        end
+        if frame.SetMaxResize then
+            frame:SetMaxResize(maxW, maxH)
+        end
+    end
+    if frame.resizeGrip then
+        return frame.resizeGrip
+    end
+    local grip = CreateFrame("Button", nil, frame)
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", -2, 2)
+    grip:SetFrameLevel(frame:GetFrameLevel() + 8)
+    grip:EnableMouse(true)
+    grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    grip:SetScript("OnMouseDown", function()
+        ST:PinFrameForResize(frame)
+        if frame.SetResizeBounds then
+            frame:SetResizeBounds(minW, minH, maxW, maxH)
+        end
+        frame:StartSizing("BOTTOMRIGHT")
+    end)
+    grip:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing()
+        if ST.frame == frame then
+            ST.frameW = frame:GetWidth()
+            ST.frameH = frame:GetHeight()
+        end
+        if onStop then
+            onStop()
+        end
+        ST:SaveDB()
+    end)
+    frame.resizeGrip = grip
+    return grip
 end

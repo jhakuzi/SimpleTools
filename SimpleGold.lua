@@ -8,20 +8,20 @@ function ST:CreateSimpleGoldUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local gainedLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    gainedLabel:SetPoint("TOP", 0, -8)
-    gainedLabel:SetText("Gold gained")
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("Gold")
 
     self.goldGainedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.goldGainedDisplay:SetPoint("TOP", 0, -24)
+    self.goldGainedDisplay:SetPoint("TOP", 0, -18)
     self.goldGainedDisplay:SetText("0c")
 
-    self.goldPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.goldPerHourDisplay:SetPoint("TOP", 0, -48)
+    self.goldPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.goldPerHourDisplay:SetPoint("TOP", 0, -40)
     self.goldPerHourDisplay:SetText("Gold/hr: 0c")
 
-    self.goldElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.goldElapsedDisplay:SetPoint("TOP", 0, -72)
+    self.goldElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.goldElapsedDisplay:SetPoint("TOP", 0, -54)
     self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.goldProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
@@ -42,7 +42,7 @@ function ST:CreateSimpleGoldUI(parent)
         ST:ResetGoldTracker()
     end)
 
-    self:LayoutTrackerButtons(frame, self.goldStartPauseButton, self.goldProjectButton, self.goldResetButton)
+    self:LayoutColumnButtons(frame, self.goldStartPauseButton, self.goldProjectButton, self.goldResetButton)
 
     return frame
 end
@@ -177,18 +177,7 @@ function ST:CreateGoldProjectedFrame()
         selfObj:StopMovingOrSizing()
         ST:SaveDB()
     end)
-    if frame.SetBackdrop then
-        frame:SetBackdrop({
-            bgFile = "Interface\\Buttons\\WHITE8x8",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true,
-            tileSize = 8,
-            edgeSize = 12,
-            insets = { left = 2, right = 2, top = 2, bottom = 2 },
-        })
-        frame:SetBackdropColor(0, 0, 0, 0.45)
-        frame:SetBackdropBorderColor(0.7, 0.7, 0.7, 0.6)
-    end
+    self:ApplyOverlayBackdrop(frame)
 
     self.goldProjGained = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.goldProjGained:SetPoint("TOP", 0, -8)

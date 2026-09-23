@@ -8,8 +8,12 @@ function ST:CreateSimpleWatchUI(parent)
     frame:SetAllPoints()
     self.stopwatchFrame = frame
 
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("Stopwatch")
+
     self.stopwatchDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.stopwatchDisplay:SetPoint("CENTER", 0, 10)
+    self.stopwatchDisplay:SetPoint("TOP", 0, -36)
     self.stopwatchDisplay:SetText("00:00")
 
     self.swStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
@@ -30,7 +34,7 @@ function ST:CreateSimpleWatchUI(parent)
         ST:ResetStopwatch()
     end)
 
-    self:LayoutTrackerButtons(frame, self.swStartPauseButton, self.swProjectButton, self.swResetButton)
+    self:LayoutColumnButtons(frame, self.swStartPauseButton, self.swProjectButton, self.swResetButton)
 
     return frame
 end

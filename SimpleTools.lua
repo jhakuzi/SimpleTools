@@ -4,18 +4,17 @@ local GetTime = GetTime
 local CreateFrame = CreateFrame
 
 local TABS = {
-    { key = "timer",    label = "Timer",     width = 70 },
-    { key = "watch",    label = "Stopwatch", width = 86 },
-    { key = "reminder", label = "Reminder",  width = 80 },
-    { key = "xp",       label = "XP",        width = 50 },
-    { key = "gold",     label = "Gold",      width = 54 },
-    { key = "gather",   label = "Gather",    width = 68 },
-    { key = "notepad",  label = "Notepad",   width = 76 },
+    { key = "time",    label = "Time",     width = 56 },
+    { key = "xp",      label = "XP/Gold",  width = 72 },
+    { key = "gather",  label = "Gather",   width = 62 },
+    { key = "notepad", label = "Notepad",  width = 70 },
+    { key = "shop",    label = "Shop",     width = 50 },
 }
 
 function ST:CreateMainFrame()
-    local frame = CreateFrame("Frame", "SimpleToolsFrame", UIParent, "BasicFrameTemplateWithInset")
-    frame:SetSize(560, 300)
+    local frame = self:CreateThemedPanel("SimpleToolsFrame")
+    self.frame = frame
+    self:ApplyMainFrameSize(ST.FRAME_W, ST.FRAME_H)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -28,54 +27,166 @@ function ST:CreateMainFrame()
         ST:SaveDB()
     end)
     tinsert(UISpecialFrames, "SimpleToolsFrame")
-
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.title:SetPoint("TOP", 0, -5)
-    frame.title:SetText("SimpleTools")
-
-    self.frame = frame
+    self:SetPanelTitle(frame, "SimpleTools")
+    self:EnsurePanelClose(frame)
+    self:AttachResizeGrip(frame, ST.FRAME_MIN_W, ST.FRAME_MIN_H, ST.FRAME_MAX_W, ST.FRAME_MAX_H, function()
+        ST:OnMainFrameSizeChanged()
+    end)
+    frame:SetScript("OnSizeChanged", function()
+        ST:OnMainFrameSizeChanged()
+        ST:ScheduleSave()
+    end)
+    frame:HookScript("OnShow", function()
+        -- DefaultPanelTemplate can snap to a huge preferred size the first time
+        -- it is shown. Re-apply the compact (or player-resized) size after that.
+        local w, h = ST.frameW or ST.FRAME_W, ST.frameH or ST.FRAME_H
+        C_Timer.After(0, function()
+            if ST.frame and ST.frame:IsShown() then
+                ST:ApplyMainFrameSize(w, h)
+            end
+        end)
+    end)
     self.tabButtons = {}
     self.tabFrames = {}
 
-    local prev
     for i, tab in ipairs(TABS) do
         local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-        btn:SetSize(tab.width, 20)
-        if prev then
-            btn:SetPoint("LEFT", prev, "RIGHT", 2, 0)
-        else
-            btn:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -32)
+        btn.naturalWidth = tab.width
+        btn:SetSize(tab.width, 18)
+        if btn.SetNormalFontObject then
+            btn:SetNormalFontObject("GameFontNormalSmall")
+        end
+        if btn.Text and btn.Text.SetFontObject then
+            btn.Text:SetFontObject("GameFontNormalSmall")
         end
         btn:SetText(tab.label)
         btn:SetScript("OnClick", function()
             self:SelectTab(i)
         end)
         self.tabButtons[i] = btn
-        prev = btn
     end
 
     self.contentFrame = CreateFrame("Frame", nil, frame)
     self.contentFrame:SetPoint("TOPLEFT", 10, -56)
     self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 10)
+    self:LayoutTabButtons()
 
-    self.tabFrames[1] = self:CreateTimerUI(self.contentFrame)
-    self.tabFrames[2] = self:CreateSimpleWatchUI(self.contentFrame)
-    self.tabFrames[3] = self:CreateSimpleReminderUI(self.contentFrame)
-    self.tabFrames[4] = self:CreateSimpleXPUI(self.contentFrame)
-    self.tabFrames[5] = self:CreateSimpleGoldUI(self.contentFrame)
-    self.tabFrames[6] = self:CreateSimpleGatherUI(self.contentFrame)
-    self.tabFrames[7] = self:CreateSimpleNotepadUI(self.contentFrame)
+    self.tabFrames[1] = self:CreateTimeTab(self.contentFrame)
+    self.tabFrames[2] = self:CreateXPGoldTab(self.contentFrame)
+    self.tabFrames[3] = self:CreateSimpleGatherUI(self.contentFrame)
+    self.tabFrames[4] = self:CreateSimpleNotepadUI(self.contentFrame)
+    self.tabFrames[5] = self:CreateSimpleShopUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
-    self.simpleWatchFrame = self.tabFrames[2]
-    self.simpleReminderFrame = self.tabFrames[3]
-    self.simpleXPFrame = self.tabFrames[4]
-    self.simpleGoldFrame = self.tabFrames[5]
-    self.simpleGatherFrame = self.tabFrames[6]
-    self.simpleNotepadFrame = self.tabFrames[7]
+    self.simpleXPFrame = self.tabFrames[2]
+    self.simpleGatherFrame = self.tabFrames[3]
+    self.simpleNotepadFrame = self.tabFrames[4]
+    self.shopFrame = self.tabFrames[5]
 
     self:SelectTab(1)
     frame:Hide()
+end
+
+function ST:LayoutTabButtons()
+    local frame = self.frame
+    local buttons = self.tabButtons
+    if not frame or not buttons or #buttons == 0 then
+        return
+    end
+    local frameWidth = frame:GetWidth() or ST.FRAME_W
+    local inner = math.max(200, frameWidth - 32)
+    local gap, height, rowGap, top = 2, 18, 3, 30
+    local minW = 48
+    local n = #buttons
+    local natural, total = {}, 0
+    for i, btn in ipairs(buttons) do
+        natural[i] = btn.naturalWidth or 50
+        total = total + natural[i]
+        if i > 1 then
+            total = total + gap
+        end
+    end
+    local minTotal = n * minW + math.max(0, n - 1) * gap
+    local rows = 1
+    local y = -top
+
+    if total <= inner or minTotal <= inner then
+        local usable = math.min(inner, math.max(total, minTotal))
+        if total > inner then
+            usable = inner
+        end
+        local textWidth = total - math.max(0, n - 1) * gap
+        local scale = 1
+        if textWidth > 0 then
+            scale = (usable - math.max(0, n - 1) * gap) / textWidth
+        end
+        local widths, used = {}, 0
+        for i = 1, n do
+            local w = math.max(minW, math.floor(natural[i] * scale + 0.5))
+            widths[i] = w
+            used = used + w
+        end
+        used = used + math.max(0, n - 1) * gap
+        if used > usable and n > 0 then
+            widths[n] = math.max(minW, widths[n] - (used - usable))
+            used = usable
+        end
+        local x = (frameWidth - used) / 2
+        for i, btn in ipairs(buttons) do
+            btn:SetSize(widths[i], height)
+            btn:ClearAllPoints()
+            btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+            x = x + widths[i] + gap
+        end
+        rows = 1
+    else
+        local i = 1
+        rows = 0
+        while i <= n do
+            local rowWidth, count = 0, 0
+            for j = i, n do
+                local w = math.max(minW, natural[j])
+                local nextWidth = count == 0 and w or (rowWidth + gap + w)
+                if count > 0 and nextWidth > inner then
+                    break
+                end
+                rowWidth = nextWidth
+                count = count + 1
+            end
+            if count < 1 then
+                count = 1
+                rowWidth = math.max(minW, natural[i])
+            end
+            local x = (frameWidth - rowWidth) / 2
+            for k = 0, count - 1 do
+                local btn = buttons[i + k]
+                local w = math.max(minW, natural[i + k])
+                btn:SetSize(w, height)
+                btn:ClearAllPoints()
+                btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+                x = x + w + gap
+            end
+            i = i + count
+            rows = rows + 1
+            y = y - height - rowGap
+        end
+    end
+    if self.contentFrame then
+        local inset = top + rows * (height + rowGap) + 2
+        self.contentFrame:ClearAllPoints()
+        self.contentFrame:SetPoint("TOPLEFT", 10, -inset)
+        self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 8)
+    end
+end
+
+function ST:OnMainFrameSizeChanged()
+    self:LayoutTabButtons()
+    if self.LayoutShopProfButtons then
+        self:LayoutShopProfButtons()
+    end
+    if self.shopListChild and self.RefreshShopList then
+        self:RefreshShopList()
+    end
 end
 
 function ST:SelectTab(id)
@@ -93,17 +204,40 @@ function ST:SelectTab(id)
     end
 end
 
+function ST:CreateTimeTab(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetAllPoints()
+    local cols = self:SplitColumns(frame, 3)
+    self:CreateTimerUI(cols[1])
+    self:CreateSimpleWatchUI(cols[2])
+    self:CreateSimpleReminderUI(cols[3])
+    return frame
+end
+
+function ST:CreateXPGoldTab(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetAllPoints()
+    local cols = self:SplitColumns(frame, 2)
+    self:CreateSimpleXPUI(cols[1])
+    self:CreateSimpleGoldUI(cols[2])
+    return frame
+end
+
 function ST:CreateTimerUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    durationLabel:SetPoint("TOP", -48, -8)
-    durationLabel:SetText("Duration (min):")
+    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOP", 0, -2)
+    heading:SetText("Timer")
+
+    local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    durationLabel:SetPoint("TOP", 0, -18)
+    durationLabel:SetText("Duration (min)")
 
     self.durationInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    self.durationInput:SetSize(50, 20)
-    self.durationInput:SetPoint("LEFT", durationLabel, "RIGHT", 10, 0)
+    self.durationInput:SetSize(44, 18)
+    self.durationInput:SetPoint("TOP", durationLabel, "BOTTOM", 0, -2)
     self.durationInput:SetAutoFocus(false)
     self.durationInput:SetNumeric(true)
     self.durationInput:SetMaxLetters(4)
@@ -114,7 +248,7 @@ function ST:CreateTimerUI(parent)
     self.durationInput:SetText(tostring(defaultDuration))
 
     self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.timerDisplay:SetPoint("CENTER", 0, 10)
+    self.timerDisplay:SetPoint("TOP", self.durationInput, "BOTTOM", 0, -8)
     self.timerDisplay:SetText("00:00")
 
     self.startPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
@@ -135,7 +269,7 @@ function ST:CreateTimerUI(parent)
         ST:ResetTimer()
     end)
 
-    self:LayoutTrackerButtons(frame, self.startPauseButton, self.timerProjectButton, self.resetButton)
+    self:LayoutColumnButtons(frame, self.startPauseButton, self.timerProjectButton, self.resetButton)
 
     return frame
 end
@@ -282,8 +416,9 @@ function ST:RegisterSlash()
         elseif msg == "resetpos" then
             self.frame:ClearAllPoints()
             self.frame:SetPoint("CENTER")
+            self:ApplyMainFrameSize(ST.FRAME_W, ST.FRAME_H)
             self:SaveDB()
-            self:Print("Window position reset.")
+            self:Print("Window position and size reset.")
         else
             self:ToggleWindow()
         end
@@ -297,7 +432,6 @@ function ST:Initialize()
     self:RegisterEvents()
     self:RegisterSlash()
     self:RegisterSettings()
-    self:CreateMinimapButton()
     self:RefreshTicker()
 
     if not self.db.seenWelcome then
