@@ -104,6 +104,8 @@ function ST:ResetXPTracker()
     self.xp.startValue = 0
     self.xp.maxAtStart = 0
     self.xp.gained = 0
+    self.xp.shownRate = nil
+    self.xp.rateBucket = nil
     self.xpGainedDisplay:SetText("0")
     self.xpPerHourDisplay:SetText("XP/hr: 0")
     self.xpTimeToLevelDisplay:SetText("TTL: --:--:--")
@@ -190,7 +192,7 @@ function ST:UpdateXPTracker()
     end
 
     if elapsed > 0 then
-        local xpPerHour = math.floor((self.xp.gained / elapsed) * 3600)
+        local xpPerHour = self:HeldRate(self.xp, elapsed, self.xp.gained)
         self.xpPerHourDisplay:SetText("XP/hr: " .. tostring(xpPerHour))
         if self.xpProjectedFrame then
             self.xpProjPerHour:SetText("XP/hr: " .. tostring(xpPerHour))

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.2 — Steadier XP and gold rates
+
+- XP/hr, gold/hr, and time-to-level refresh every 30 seconds instead of every tick. Elapsed time still counts live.
+
 ## 2.5.1 — Ping wheel removed
 
 - The Ping tab is gone. Forever already has the ping wheel in the client.

@@ -105,6 +105,8 @@ function ST:ResetGoldTracker()
     self.gold.anchor = 0
     self.gold.startValue = 0
     self.gold.gained = 0
+    self.gold.shownRate = nil
+    self.gold.rateBucket = nil
     self.goldGainedDisplay:SetText("0c")
     self.goldPerHourDisplay:SetText("Gold/hr: 0c")
     self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
@@ -149,7 +151,7 @@ function ST:UpdateGoldTracker()
     end
 
     if elapsed > 0 then
-        local goldPerHour = math.floor((self.gold.gained / elapsed) * 3600)
+        local goldPerHour = self:HeldRate(self.gold, elapsed, self.gold.gained)
         local rateText = self:FormatMoney(goldPerHour)
         self.goldPerHourDisplay:SetText("Gold/hr: " .. rateText)
         if self.goldProjectedFrame then

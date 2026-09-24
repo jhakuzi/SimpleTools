@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.1"
+ST.VERSION = "2.5.2"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -276,6 +276,30 @@ function ST:FormatMoney(copper)
         return "-" .. str
     end
     return str
+end
+
+-- Per-hour numbers drift if recomputed every tick. Hold them, then refresh
+-- once each 30s of session time. The first half-minute stays live so a
+-- brand-new session is not stuck on a one-second spike.
+function ST:HeldRate(state, elapsed, gained)
+    elapsed = tonumber(elapsed) or 0
+    gained = tonumber(gained) or 0
+    if elapsed <= 0 then
+        state.shownRate = 0
+        state.rateBucket = nil
+        return 0
+    end
+    if elapsed < 30 then
+        state.rateBucket = nil
+        state.shownRate = math.floor((gained / elapsed) * 3600)
+        return state.shownRate
+    end
+    local bucket = math.floor(elapsed / 30)
+    if state.rateBucket ~= bucket or state.shownRate == nil then
+        state.rateBucket = bucket
+        state.shownRate = math.floor((gained / elapsed) * 3600)
+    end
+    return state.shownRate
 end
 
 function ST:MigrateDB(db)
