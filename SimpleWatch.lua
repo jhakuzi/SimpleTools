@@ -13,6 +13,7 @@ function ST:CreateSimpleWatchUI(parent)
     heading:SetText("Stopwatch")
 
     self.stopwatchDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self:SetHeadlineFont(self.stopwatchDisplay)
     self.stopwatchDisplay:SetPoint("TOP", 0, -36)
     self.stopwatchDisplay:SetText("00:00")
 

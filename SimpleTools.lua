@@ -248,6 +248,7 @@ function ST:CreateTimerUI(parent)
     self.durationInput:SetText(tostring(defaultDuration))
 
     self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self:SetHeadlineFont(self.timerDisplay)
     self.timerDisplay:SetPoint("TOP", self.durationInput, "BOTTOM", 0, -8)
     self.timerDisplay:SetText("00:00")
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.6 — Tighter type
+
+- Headline numbers are one step smaller. Lines sit closer. Kill and Quest use a colon.
+
 ## 2.5.5 — Tighter clocks
 
 - TTL, gathering, and elapsed show hours and minutes only. The reminder hint is gone. Lines sit a little closer together.

@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.5"
+ST.VERSION = "2.5.6"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -247,6 +247,14 @@ function ST:FormatTime(seconds)
         return string.format("%d:%02d:%02d", hours, minutes, secs)
     end
     return string.format("%02d:%02d", minutes, secs)
+end
+
+function ST:SetHeadlineFont(fs)
+    fs:SetFontObject("GameFontHighlight")
+    local font, size, flags = fs:GetFont()
+    if font and size then
+        fs:SetFont(font, size + 2, flags)
+    end
 end
 
 function ST:FormatElapsedTime(seconds)
