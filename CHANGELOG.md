@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.4 — Less label clutter
+
+- Dropped the XP and Gold headings, and the Gained labels. The numbers stay.
+
 ## 2.5.3 — Kill and quest XP
 
 - The XP column shows Kill and Quest under the session total. Kills come from combat XP, quests from turn-ins. The overlay shows the same split.

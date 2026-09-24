@@ -14,36 +14,32 @@ function ST:CreateSimpleXPUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    heading:SetPoint("TOP", 0, -2)
-    heading:SetText("XP")
-
     self.xpGainedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.xpGainedDisplay:SetPoint("TOP", 0, -16)
+    self.xpGainedDisplay:SetPoint("TOP", 0, -4)
     self.xpGainedDisplay:SetText("0")
 
     self.xpKillDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpKillDisplay:SetPoint("TOP", -48, -36)
+    self.xpKillDisplay:SetPoint("TOP", -48, -24)
     self.xpKillDisplay:SetText("Kill 0")
 
     self.xpQuestDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpQuestDisplay:SetPoint("TOP", 48, -36)
+    self.xpQuestDisplay:SetPoint("TOP", 48, -24)
     self.xpQuestDisplay:SetText("Quest 0")
 
     self.xpPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpPerHourDisplay:SetPoint("TOP", 0, -50)
+    self.xpPerHourDisplay:SetPoint("TOP", 0, -38)
     self.xpPerHourDisplay:SetText("XP/hr: 0")
 
     self.xpTimeToLevelDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -62)
+    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -50)
     self.xpTimeToLevelDisplay:SetText("TTL: --:--:--")
 
     self.xpRestedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.xpRestedDisplay:SetPoint("TOP", 0, -74)
+    self.xpRestedDisplay:SetPoint("TOP", 0, -62)
     self.xpRestedDisplay:SetText("Rested: --")
 
     self.xpElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpElapsedDisplay:SetPoint("TOP", 0, -86)
+    self.xpElapsedDisplay:SetPoint("TOP", 0, -74)
     self.xpElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.xpProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")

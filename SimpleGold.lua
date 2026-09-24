@@ -8,20 +8,16 @@ function ST:CreateSimpleGoldUI(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints()
 
-    local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    heading:SetPoint("TOP", 0, -2)
-    heading:SetText("Gold")
-
     self.goldGainedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.goldGainedDisplay:SetPoint("TOP", 0, -18)
+    self.goldGainedDisplay:SetPoint("TOP", 0, -4)
     self.goldGainedDisplay:SetText("0c")
 
     self.goldPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldPerHourDisplay:SetPoint("TOP", 0, -40)
+    self.goldPerHourDisplay:SetPoint("TOP", 0, -26)
     self.goldPerHourDisplay:SetText("Gold/hr: 0c")
 
     self.goldElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldElapsedDisplay:SetPoint("TOP", 0, -54)
+    self.goldElapsedDisplay:SetPoint("TOP", 0, -40)
     self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
 
     self.goldProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
