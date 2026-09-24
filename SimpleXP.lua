@@ -20,28 +20,28 @@ function ST:CreateSimpleXPUI(parent)
     self.xpGainedDisplay:SetText("0")
 
     self.xpKillDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpKillDisplay:SetPoint("TOP", -48, -18)
-    self.xpKillDisplay:SetText("Kill: 0")
+    self.xpKillDisplay:SetPoint("TOP", -48, -20)
+    self.xpKillDisplay:SetText("Kill 0")
 
     self.xpQuestDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpQuestDisplay:SetPoint("TOP", 48, -18)
-    self.xpQuestDisplay:SetText("Quest: 0")
+    self.xpQuestDisplay:SetPoint("TOP", 48, -20)
+    self.xpQuestDisplay:SetText("Quest 0")
 
     self.xpPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpPerHourDisplay:SetPoint("TOP", 0, -26)
-    self.xpPerHourDisplay:SetText("XP/hr: 0")
+    self.xpPerHourDisplay:SetPoint("TOP", 0, -30)
+    self.xpPerHourDisplay:SetText("XP/hr 0")
 
     self.xpTimeToLevelDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -34)
-    self.xpTimeToLevelDisplay:SetText("TTL: --:--")
+    self.xpTimeToLevelDisplay:SetPoint("TOP", 0, -40)
+    self.xpTimeToLevelDisplay:SetText("TTL --:--")
 
     self.xpRestedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.xpRestedDisplay:SetPoint("TOP", 0, -42)
-    self.xpRestedDisplay:SetText("Rested: --")
+    self.xpRestedDisplay:SetPoint("TOP", 0, -50)
+    self.xpRestedDisplay:SetText("Rested --")
 
     self.xpElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.xpElapsedDisplay:SetPoint("TOP", 0, -50)
-    self.xpElapsedDisplay:SetText("Elapsed: 00:00")
+    self.xpElapsedDisplay:SetPoint("TOP", 0, -60)
+    self.xpElapsedDisplay:SetText("Elapsed 00:00")
 
     self.xpProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.xpProjectButton:SetText("Send to screen")
@@ -119,15 +119,15 @@ function ST:ResetXPTracker()
     self.xp.rateBucket = nil
     self.xpGainedDisplay:SetText("0")
     self:RefreshXPSplit()
-    self.xpPerHourDisplay:SetText("XP/hr: 0")
-    self.xpTimeToLevelDisplay:SetText("TTL: --:--")
-    self.xpElapsedDisplay:SetText("Elapsed: 00:00")
+    self.xpPerHourDisplay:SetText("XP/hr 0")
+    self.xpTimeToLevelDisplay:SetText("TTL --:--")
+    self.xpElapsedDisplay:SetText("Elapsed 00:00")
     if self.xpProjectedFrame then
-        self.xpProjGained:SetText("Gained: 0")
-        self.xpProjSplit:SetText("Kill: 0   Quest: 0")
-        self.xpProjPerHour:SetText("XP/hr: 0")
-        self.xpProjTTL:SetText("TTL: --:--")
-        self.xpProjElapsed:SetText("Elapsed: 00:00")
+        self.xpProjGained:SetText("Gained 0")
+        self.xpProjSplit:SetText("Kill 0   Quest 0")
+        self.xpProjPerHour:SetText("XP/hr 0")
+        self.xpProjTTL:SetText("TTL --:--")
+        self.xpProjElapsed:SetText("Elapsed 00:00")
     end
     if wasRunning then
         self:StartXPTracker()
@@ -161,7 +161,7 @@ function ST:OnXPUpdate()
     self.xp.maxAtStart = maxXP
     self.xpGainedDisplay:SetText(tostring(self.xp.gained))
     if self.xpProjectedFrame then
-        self.xpProjGained:SetText("Gained: " .. tostring(self.xp.gained))
+        self.xpProjGained:SetText("Gained " .. tostring(self.xp.gained))
     end
     self:NoteXPDelta(delta)
     self:UpdateXPTracker()
@@ -171,13 +171,13 @@ function ST:RefreshXPSplit()
     local kill = self.xp.kill or 0
     local quest = self.xp.quest or 0
     if self.xpKillDisplay then
-        self.xpKillDisplay:SetText("Kill: " .. kill)
+        self.xpKillDisplay:SetText("Kill " .. kill)
     end
     if self.xpQuestDisplay then
-        self.xpQuestDisplay:SetText("Quest: " .. quest)
+        self.xpQuestDisplay:SetText("Quest " .. quest)
     end
     if self.xpProjSplit then
-        self.xpProjSplit:SetText("Kill: " .. kill .. "   Quest: " .. quest)
+        self.xpProjSplit:SetText("Kill " .. kill .. "   Quest " .. quest)
     end
 end
 
@@ -287,7 +287,7 @@ function ST:UpdateXPTracker()
     end
 
     local elapsed = self:XPElapsed()
-    local elapsedText = "Elapsed: " .. self:FormatElapsedTime(elapsed)
+    local elapsedText = "Elapsed " .. self:FormatElapsedTime(elapsed)
     self.xpElapsedDisplay:SetText(elapsedText)
     if self.xpProjectedFrame then
         self.xpProjElapsed:SetText(elapsedText)
@@ -297,31 +297,31 @@ function ST:UpdateXPTracker()
     local rested = self:PlainNumber(GetXPExhaustion and GetXPExhaustion())
     if self.xpRestedDisplay then
         if rested and rested > 0 then
-            self.xpRestedDisplay:SetText("Rested: " .. tostring(rested))
+            self.xpRestedDisplay:SetText("Rested " .. tostring(rested))
         else
-            self.xpRestedDisplay:SetText("Rested: none")
+            self.xpRestedDisplay:SetText("Rested none")
         end
     end
 
     local level = self:PlainNumber(UnitLevel("player"))
     local maxLevel = self:PlainNumber(GetMaxPlayerLevel and GetMaxPlayerLevel())
     if level and maxLevel and level >= maxLevel then
-        self.xpTimeToLevelDisplay:SetText("TTL: max level")
+        self.xpTimeToLevelDisplay:SetText("TTL max level")
         if self.xpProjectedFrame then
-            self.xpProjTTL:SetText("TTL: max level")
+            self.xpProjTTL:SetText("TTL max level")
         end
-        self.xpPerHourDisplay:SetText("XP/hr: 0")
+        self.xpPerHourDisplay:SetText("XP/hr 0")
         if self.xpProjectedFrame then
-            self.xpProjPerHour:SetText("XP/hr: 0")
+            self.xpProjPerHour:SetText("XP/hr 0")
         end
         return
     end
 
     if elapsed > 0 then
         local xpPerHour = self:HeldRate(self.xp, elapsed, self.xp.gained)
-        self.xpPerHourDisplay:SetText("XP/hr: " .. tostring(xpPerHour))
+        self.xpPerHourDisplay:SetText("XP/hr " .. tostring(xpPerHour))
         if self.xpProjectedFrame then
-            self.xpProjPerHour:SetText("XP/hr: " .. tostring(xpPerHour))
+            self.xpProjPerHour:SetText("XP/hr " .. tostring(xpPerHour))
         end
         if xpPerHour > 0 then
             local currentXP, maxXP = self:GetPlayerXP()
@@ -329,34 +329,34 @@ function ST:UpdateXPTracker()
                 local xpNeeded = maxXP - currentXP
                 if xpNeeded > 0 then
                     local ttl = self:FormatElapsedTime((xpNeeded / xpPerHour) * 3600)
-                    self.xpTimeToLevelDisplay:SetText("TTL: " .. ttl)
+                    self.xpTimeToLevelDisplay:SetText("TTL " .. ttl)
                     if self.xpProjectedFrame then
-                        self.xpProjTTL:SetText("TTL: " .. ttl)
+                        self.xpProjTTL:SetText("TTL " .. ttl)
                     end
                 else
-                    self.xpTimeToLevelDisplay:SetText("TTL: 00:00")
+                    self.xpTimeToLevelDisplay:SetText("TTL 00:00")
                     if self.xpProjectedFrame then
-                        self.xpProjTTL:SetText("TTL: 00:00")
+                        self.xpProjTTL:SetText("TTL 00:00")
                     end
                 end
             else
-                self.xpTimeToLevelDisplay:SetText("TTL: --:--")
+                self.xpTimeToLevelDisplay:SetText("TTL --:--")
                 if self.xpProjectedFrame then
-                    self.xpProjTTL:SetText("TTL: --:--")
+                    self.xpProjTTL:SetText("TTL --:--")
                 end
             end
         else
-            self.xpTimeToLevelDisplay:SetText("TTL: --:--")
+            self.xpTimeToLevelDisplay:SetText("TTL --:--")
             if self.xpProjectedFrame then
-                self.xpProjTTL:SetText("TTL: --:--")
+                self.xpProjTTL:SetText("TTL --:--")
             end
         end
     else
-        self.xpPerHourDisplay:SetText("XP/hr: 0")
-        self.xpTimeToLevelDisplay:SetText("TTL: --:--")
+        self.xpPerHourDisplay:SetText("XP/hr 0")
+        self.xpTimeToLevelDisplay:SetText("TTL --:--")
         if self.xpProjectedFrame then
-            self.xpProjPerHour:SetText("XP/hr: 0")
-            self.xpProjTTL:SetText("TTL: --:--")
+            self.xpProjPerHour:SetText("XP/hr 0")
+            self.xpProjTTL:SetText("TTL --:--")
         end
     end
 end
@@ -379,23 +379,23 @@ function ST:CreateXPProjectedFrame()
 
     self.xpProjGained = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjGained:SetPoint("TOP", 0, -8)
-    self.xpProjGained:SetText("Gained: 0")
+    self.xpProjGained:SetText("Gained 0")
 
     self.xpProjSplit = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     self.xpProjSplit:SetPoint("TOP", 0, -24)
-    self.xpProjSplit:SetText("Kill: 0   Quest: 0")
+    self.xpProjSplit:SetText("Kill 0   Quest 0")
 
     self.xpProjPerHour = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjPerHour:SetPoint("TOP", 0, -38)
-    self.xpProjPerHour:SetText("XP/hr: 0")
+    self.xpProjPerHour:SetText("XP/hr 0")
 
     self.xpProjTTL = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjTTL:SetPoint("TOP", 0, -54)
-    self.xpProjTTL:SetText("TTL: --:--")
+    self.xpProjTTL:SetText("TTL --:--")
 
     self.xpProjElapsed = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.xpProjElapsed:SetPoint("TOP", 0, -70)
-    self.xpProjElapsed:SetText("Elapsed: 00:00")
+    self.xpProjElapsed:SetText("Elapsed 00:00")
 
     frame:SetScript("OnEnter", function(selfObj)
         GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")
@@ -426,7 +426,7 @@ function ST:ShowXPProjected(show, pos)
         self.xpProjectButton:SetText("Unproject")
         self.xp.projected = true
         self:UpdateXPTracker()
-        self.xpProjGained:SetText("Gained: " .. tostring(self.xp.gained))
+        self.xpProjGained:SetText("Gained " .. tostring(self.xp.gained))
     else
         self.xpProjectedFrame:Hide()
         self.xpProjectButton:SetText("Send to screen")

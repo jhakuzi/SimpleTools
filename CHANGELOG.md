@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.7 — Label colons
+
+- A little more space between lines. Colons are gone after XP/hr, Gold/hr, elapsed, TTL, Kill, and Quest.
+
 ## 2.5.6 — Tighter type
 
 - Headline numbers are one step smaller. Lines sit closer. Kill and Quest use a colon.

@@ -14,12 +14,12 @@ function ST:CreateSimpleGoldUI(parent)
     self.goldGainedDisplay:SetText("0c")
 
     self.goldPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldPerHourDisplay:SetPoint("TOP", 0, -18)
-    self.goldPerHourDisplay:SetText("Gold/hr: 0c")
+    self.goldPerHourDisplay:SetPoint("TOP", 0, -22)
+    self.goldPerHourDisplay:SetText("Gold/hr 0c")
 
     self.goldElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldElapsedDisplay:SetPoint("TOP", 0, -26)
-    self.goldElapsedDisplay:SetText("Elapsed: 00:00")
+    self.goldElapsedDisplay:SetPoint("TOP", 0, -34)
+    self.goldElapsedDisplay:SetText("Elapsed 00:00")
 
     self.goldProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.goldProjectButton:SetText("Send to screen")
@@ -105,12 +105,12 @@ function ST:ResetGoldTracker()
     self.gold.shownRate = nil
     self.gold.rateBucket = nil
     self.goldGainedDisplay:SetText("0c")
-    self.goldPerHourDisplay:SetText("Gold/hr: 0c")
-    self.goldElapsedDisplay:SetText("Elapsed: 00:00")
+    self.goldPerHourDisplay:SetText("Gold/hr 0c")
+    self.goldElapsedDisplay:SetText("Elapsed 00:00")
     if self.goldProjectedFrame then
-        self.goldProjGained:SetText("Gained: 0c")
-        self.goldProjPerHour:SetText("Gold/hr: 0c")
-        self.goldProjElapsed:SetText("Elapsed: 00:00")
+        self.goldProjGained:SetText("Gained 0c")
+        self.goldProjPerHour:SetText("Gold/hr 0c")
+        self.goldProjElapsed:SetText("Elapsed 00:00")
     end
     if wasRunning then
         self:StartGoldTracker()
@@ -135,7 +135,7 @@ function ST:UpdateGoldTracker()
     end
 
     local elapsed = self:GoldElapsed()
-    local elapsedText = "Elapsed: " .. self:FormatElapsedTime(elapsed)
+    local elapsedText = "Elapsed " .. self:FormatElapsedTime(elapsed)
     self.goldElapsedDisplay:SetText(elapsedText)
     if self.goldProjectedFrame then
         self.goldProjElapsed:SetText(elapsedText)
@@ -144,20 +144,20 @@ function ST:UpdateGoldTracker()
     local gainedText = self:FormatMoney(self.gold.gained)
     self.goldGainedDisplay:SetText(gainedText)
     if self.goldProjectedFrame then
-        self.goldProjGained:SetText("Gained: " .. gainedText)
+        self.goldProjGained:SetText("Gained " .. gainedText)
     end
 
     if elapsed > 0 then
         local goldPerHour = self:HeldRate(self.gold, elapsed, self.gold.gained)
         local rateText = self:FormatMoney(goldPerHour)
-        self.goldPerHourDisplay:SetText("Gold/hr: " .. rateText)
+        self.goldPerHourDisplay:SetText("Gold/hr " .. rateText)
         if self.goldProjectedFrame then
-            self.goldProjPerHour:SetText("Gold/hr: " .. rateText)
+            self.goldProjPerHour:SetText("Gold/hr " .. rateText)
         end
     else
-        self.goldPerHourDisplay:SetText("Gold/hr: 0c")
+        self.goldPerHourDisplay:SetText("Gold/hr 0c")
         if self.goldProjectedFrame then
-            self.goldProjPerHour:SetText("Gold/hr: 0c")
+            self.goldProjPerHour:SetText("Gold/hr 0c")
         end
     end
 end
@@ -180,15 +180,15 @@ function ST:CreateGoldProjectedFrame()
 
     self.goldProjGained = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.goldProjGained:SetPoint("TOP", 0, -8)
-    self.goldProjGained:SetText("Gained: 0c")
+    self.goldProjGained:SetText("Gained 0c")
 
     self.goldProjPerHour = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.goldProjPerHour:SetPoint("TOP", 0, -24)
-    self.goldProjPerHour:SetText("Gold/hr: 0c")
+    self.goldProjPerHour:SetText("Gold/hr 0c")
 
     self.goldProjElapsed = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.goldProjElapsed:SetPoint("TOP", 0, -40)
-    self.goldProjElapsed:SetText("Elapsed: 00:00")
+    self.goldProjElapsed:SetText("Elapsed 00:00")
 
     frame:SetScript("OnEnter", function(selfObj)
         GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")

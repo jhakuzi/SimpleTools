@@ -130,22 +130,22 @@ function ST:CreateSimpleGatherUI(parent)
     self.gatherNodesDisplay:SetText("0 nodes")
 
     self.gatherPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.gatherPerHourDisplay:SetPoint("TOP", 0, -18)
-    self.gatherPerHourDisplay:SetText("Nodes/hr: 0")
+    self.gatherPerHourDisplay:SetPoint("TOP", 0, -22)
+    self.gatherPerHourDisplay:SetText("Nodes/hr 0")
 
     self.gatherKindsDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.gatherKindsDisplay:SetPoint("TOP", 0, -26)
+    self.gatherKindsDisplay:SetPoint("TOP", 0, -34)
     self.gatherKindsDisplay:SetText("Herbs 0  ·  Ore 0  ·  Leather 0")
 
     self.gatherElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.gatherElapsedDisplay:SetPoint("TOP", 0, -36)
-    self.gatherElapsedDisplay:SetText("Elapsed: 00:00")
+    self.gatherElapsedDisplay:SetPoint("TOP", 0, -46)
+    self.gatherElapsedDisplay:SetText("Elapsed 00:00")
 
     -- Same width as the Start / Send to screen / Reset row (112 * 3 + 12 * 2).
     local rowWidth = 360
     local listBox = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     listBox:SetWidth(rowWidth)
-    listBox:SetPoint("TOP", 0, -50)
+    listBox:SetPoint("TOP", 0, -60)
     listBox:SetPoint("BOTTOM", 0, 42)
     self:ApplyOverlayBackdrop(listBox)
 
@@ -340,7 +340,7 @@ function ST:UpdateGatherTracker()
     local nodes = self.gather.nodes or 0
     self.gatherNodesDisplay:SetText(tostring(nodes) .. (nodes == 1 and " node" or " nodes"))
 
-    local elapsedText = "Elapsed: " .. self:FormatElapsedTime(elapsed)
+    local elapsedText = "Elapsed " .. self:FormatElapsedTime(elapsed)
     self.gatherElapsedDisplay:SetText(elapsedText)
 
     local kinds = string.format(
@@ -355,7 +355,7 @@ function ST:UpdateGatherTracker()
     if elapsed > 0 then
         rate = math.floor((nodes / elapsed) * 3600)
     end
-    local rateText = "Nodes/hr: " .. tostring(rate)
+    local rateText = "Nodes/hr " .. tostring(rate)
     self.gatherPerHourDisplay:SetText(rateText)
 
     self:RefreshGatherList()
@@ -412,7 +412,7 @@ function ST:CreateGatherProjectedFrame()
 
     self.gatherProjRate = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.gatherProjRate:SetPoint("TOP", 0, -24)
-    self.gatherProjRate:SetText("Nodes/hr: 0")
+    self.gatherProjRate:SetText("Nodes/hr 0")
 
     self.gatherProjKinds = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     self.gatherProjKinds:SetPoint("TOP", 0, -40)
@@ -420,7 +420,7 @@ function ST:CreateGatherProjectedFrame()
 
     self.gatherProjElapsed = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     self.gatherProjElapsed:SetPoint("TOP", 0, -54)
-    self.gatherProjElapsed:SetText("Elapsed: 00:00")
+    self.gatherProjElapsed:SetText("Elapsed 00:00")
 
     self.gatherProjItems = {}
     for i = 1, OVERLAY_ITEM_ROWS do
