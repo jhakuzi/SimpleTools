@@ -125,26 +125,26 @@ function ST:CreateSimpleGatherUI(parent)
     frame:SetAllPoints()
 
     self.gatherNodesDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.gatherNodesDisplay:SetPoint("TOP", 0, -4)
+    self.gatherNodesDisplay:SetPoint("TOP", 0, -2)
     self.gatherNodesDisplay:SetText("0 nodes")
 
     self.gatherPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.gatherPerHourDisplay:SetPoint("TOP", 0, -24)
+    self.gatherPerHourDisplay:SetPoint("TOP", 0, -18)
     self.gatherPerHourDisplay:SetText("Nodes/hr: 0")
 
     self.gatherKindsDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    self.gatherKindsDisplay:SetPoint("TOP", 0, -42)
+    self.gatherKindsDisplay:SetPoint("TOP", 0, -34)
     self.gatherKindsDisplay:SetText("Herbs 0  ·  Ore 0  ·  Leather 0")
 
     self.gatherElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.gatherElapsedDisplay:SetPoint("TOP", 0, -58)
-    self.gatherElapsedDisplay:SetText("Elapsed: 00:00:00")
+    self.gatherElapsedDisplay:SetPoint("TOP", 0, -46)
+    self.gatherElapsedDisplay:SetText("Elapsed: 00:00")
 
     -- Same width as the Start / Send to screen / Reset row (112 * 3 + 12 * 2).
     local rowWidth = 360
     local listBox = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     listBox:SetWidth(rowWidth)
-    listBox:SetPoint("TOP", 0, -76)
+    listBox:SetPoint("TOP", 0, -62)
     listBox:SetPoint("BOTTOM", 0, 42)
     self:ApplyOverlayBackdrop(listBox)
 
@@ -419,7 +419,7 @@ function ST:CreateGatherProjectedFrame()
 
     self.gatherProjElapsed = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     self.gatherProjElapsed:SetPoint("TOP", 0, -54)
-    self.gatherProjElapsed:SetText("Elapsed: 00:00:00")
+    self.gatherProjElapsed:SetText("Elapsed: 00:00")
 
     self.gatherProjItems = {}
     for i = 1, OVERLAY_ITEM_ROWS do

@@ -9,16 +9,16 @@ function ST:CreateSimpleGoldUI(parent)
     frame:SetAllPoints()
 
     self.goldGainedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self.goldGainedDisplay:SetPoint("TOP", 0, -4)
+    self.goldGainedDisplay:SetPoint("TOP", 0, -2)
     self.goldGainedDisplay:SetText("0c")
 
     self.goldPerHourDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldPerHourDisplay:SetPoint("TOP", 0, -26)
+    self.goldPerHourDisplay:SetPoint("TOP", 0, -22)
     self.goldPerHourDisplay:SetText("Gold/hr: 0c")
 
     self.goldElapsedDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.goldElapsedDisplay:SetPoint("TOP", 0, -40)
-    self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
+    self.goldElapsedDisplay:SetPoint("TOP", 0, -34)
+    self.goldElapsedDisplay:SetText("Elapsed: 00:00")
 
     self.goldProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.goldProjectButton:SetText("Send to screen")
@@ -105,11 +105,11 @@ function ST:ResetGoldTracker()
     self.gold.rateBucket = nil
     self.goldGainedDisplay:SetText("0c")
     self.goldPerHourDisplay:SetText("Gold/hr: 0c")
-    self.goldElapsedDisplay:SetText("Elapsed: 00:00:00")
+    self.goldElapsedDisplay:SetText("Elapsed: 00:00")
     if self.goldProjectedFrame then
         self.goldProjGained:SetText("Gained: 0c")
         self.goldProjPerHour:SetText("Gold/hr: 0c")
-        self.goldProjElapsed:SetText("Elapsed: 00:00:00")
+        self.goldProjElapsed:SetText("Elapsed: 00:00")
     end
     if wasRunning then
         self:StartGoldTracker()
@@ -187,7 +187,7 @@ function ST:CreateGoldProjectedFrame()
 
     self.goldProjElapsed = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.goldProjElapsed:SetPoint("TOP", 0, -40)
-    self.goldProjElapsed:SetText("Elapsed: 00:00:00")
+    self.goldProjElapsed:SetText("Elapsed: 00:00")
 
     frame:SetScript("OnEnter", function(selfObj)
         GameTooltip:SetOwner(selfObj, "ANCHOR_RIGHT")

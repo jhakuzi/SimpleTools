@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.5 — Tighter clocks
+
+- TTL, gathering, and elapsed show hours and minutes only. The reminder hint is gone. Lines sit a little closer together.
+
 ## 2.5.4 — Less label clutter
 
 - Dropped the XP and Gold headings, and the Gained labels. The numbers stay.
