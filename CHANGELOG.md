@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.3 — Kill and quest XP
+
+- The XP column shows Kill and Quest under the session total. Kills come from combat XP, quests from turn-ins. The overlay shows the same split.
+
 ## 2.5.2 — Steadier XP and gold rates
 
 - XP/hr, gold/hr, and time-to-level refresh every 30 seconds instead of every tick. Elapsed time still counts live.

@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.2"
+ST.VERSION = "2.5.3"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -68,6 +68,8 @@ local DEFAULTS = {
         startValue = 0,
         maxAtStart = 1,
         gained = 0,
+        kill = 0,
+        quest = 0,
         projected = false,
         projPoint = "CENTER",
         projRelativePoint = "CENTER",
@@ -419,6 +421,8 @@ function ST:SaveDB()
     db.xp.startValue = self.xp.startValue
     db.xp.maxAtStart = self.xp.maxAtStart
     db.xp.gained = self.xp.gained
+    db.xp.kill = self.xp.kill or 0
+    db.xp.quest = self.xp.quest or 0
     db.xp.projected = self.xp.projected
     db.xp.projPoint = xpPoint
     db.xp.projRelativePoint = xpRel
@@ -559,6 +563,8 @@ function ST:LoadState()
     self.xp.startValue = db.xp.startValue or 0
     self.xp.maxAtStart = db.xp.maxAtStart or 1
     self.xp.gained = db.xp.gained or 0
+    self.xp.kill = db.xp.kill or 0
+    self.xp.quest = db.xp.quest or 0
     if self.xp.running then
         self.xp.anchor = GetTime()
         if self.xpStartPauseButton then
@@ -730,6 +736,8 @@ function ST:RegisterEvents()
     f:RegisterEvent("PLAYER_ENTERING_WORLD")
     f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     f:RegisterEvent("CHAT_MSG_LOOT")
+    f:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN")
+    f:RegisterEvent("QUEST_TURNED_IN")
     f:SetScript("OnEvent", function(_, event, ...)
         if event == "PLAYER_LOGOUT" then
             self:SaveDB()
@@ -756,6 +764,14 @@ function ST:RegisterEvents()
         elseif event == "CHAT_MSG_LOOT" then
             if self.OnGatherLoot then
                 self:OnGatherLoot(...)
+            end
+        elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
+            if self.OnCombatXPGain then
+                self:OnCombatXPGain(...)
+            end
+        elseif event == "QUEST_TURNED_IN" then
+            if self.OnQuestTurnedIn then
+                self:OnQuestTurnedIn(...)
             end
         end
     end)
