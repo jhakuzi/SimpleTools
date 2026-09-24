@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.8 — Aligned clocks
+
+- Duration label is gone. Timer and stopwatch times sit on the same line.
+
 ## 2.5.7 — Label colons
 
 - A little more space between lines. Colons are gone after XP/hr, Gold/hr, elapsed, TTL, Kill, and Quest.

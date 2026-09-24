@@ -231,13 +231,14 @@ function ST:CreateTimerUI(parent)
     heading:SetPoint("TOP", 0, -2)
     heading:SetText("Timer")
 
-    local durationLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    durationLabel:SetPoint("TOP", 0, -18)
-    durationLabel:SetText("Duration (min)")
+    self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    self:SetHeadlineFont(self.timerDisplay)
+    self.timerDisplay:SetPoint("TOP", 0, -22)
+    self.timerDisplay:SetText("00:00")
 
     self.durationInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
     self.durationInput:SetSize(44, 18)
-    self.durationInput:SetPoint("TOP", durationLabel, "BOTTOM", 0, -2)
+    self.durationInput:SetPoint("TOP", self.timerDisplay, "BOTTOM", 0, -4)
     self.durationInput:SetAutoFocus(false)
     self.durationInput:SetNumeric(true)
     self.durationInput:SetMaxLetters(4)
@@ -246,11 +247,6 @@ function ST:CreateTimerUI(parent)
         defaultDuration = self.db.options.defaultDuration
     end
     self.durationInput:SetText(tostring(defaultDuration))
-
-    self.timerDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    self:SetHeadlineFont(self.timerDisplay)
-    self.timerDisplay:SetPoint("TOP", self.durationInput, "BOTTOM", 0, -8)
-    self.timerDisplay:SetText("00:00")
 
     self.startPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.startPauseButton:SetText("Start")

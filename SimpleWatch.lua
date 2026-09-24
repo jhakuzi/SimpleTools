@@ -14,7 +14,7 @@ function ST:CreateSimpleWatchUI(parent)
 
     self.stopwatchDisplay = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
     self:SetHeadlineFont(self.stopwatchDisplay)
-    self.stopwatchDisplay:SetPoint("TOP", 0, -36)
+    self.stopwatchDisplay:SetPoint("TOP", 0, -22)
     self.stopwatchDisplay:SetText("00:00")
 
     self.swStartPauseButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
