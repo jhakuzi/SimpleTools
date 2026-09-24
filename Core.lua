@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.1"
+ST.VERSION = "2.5.8"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -68,6 +68,8 @@ local DEFAULTS = {
         startValue = 0,
         maxAtStart = 1,
         gained = 0,
+        kill = 0,
+        quest = 0,
         projected = false,
         projPoint = "CENTER",
         projRelativePoint = "CENTER",
@@ -247,12 +249,19 @@ function ST:FormatTime(seconds)
     return string.format("%02d:%02d", minutes, secs)
 end
 
+function ST:SetHeadlineFont(fs)
+    fs:SetFontObject("GameFontHighlight")
+    local font, size, flags = fs:GetFont()
+    if font and size then
+        fs:SetFont(font, size + 2, flags)
+    end
+end
+
 function ST:FormatElapsedTime(seconds)
     seconds = math.max(0, math.floor(tonumber(seconds) or 0))
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
-    local secs = seconds % 60
-    return string.format("%02d:%02d:%02d", hours, minutes, secs)
+    return string.format("%02d:%02d", hours, minutes)
 end
 
 function ST:FormatMoney(copper)
@@ -276,6 +285,30 @@ function ST:FormatMoney(copper)
         return "-" .. str
     end
     return str
+end
+
+-- Per-hour numbers drift if recomputed every tick. Hold them, then refresh
+-- once each 30s of session time. The first half-minute stays live so a
+-- brand-new session is not stuck on a one-second spike.
+function ST:HeldRate(state, elapsed, gained)
+    elapsed = tonumber(elapsed) or 0
+    gained = tonumber(gained) or 0
+    if elapsed <= 0 then
+        state.shownRate = 0
+        state.rateBucket = nil
+        return 0
+    end
+    if elapsed < 30 then
+        state.rateBucket = nil
+        state.shownRate = math.floor((gained / elapsed) * 3600)
+        return state.shownRate
+    end
+    local bucket = math.floor(elapsed / 30)
+    if state.rateBucket ~= bucket or state.shownRate == nil then
+        state.rateBucket = bucket
+        state.shownRate = math.floor((gained / elapsed) * 3600)
+    end
+    return state.shownRate
 end
 
 function ST:MigrateDB(db)
@@ -395,6 +428,8 @@ function ST:SaveDB()
     db.xp.startValue = self.xp.startValue
     db.xp.maxAtStart = self.xp.maxAtStart
     db.xp.gained = self.xp.gained
+    db.xp.kill = self.xp.kill or 0
+    db.xp.quest = self.xp.quest or 0
     db.xp.projected = self.xp.projected
     db.xp.projPoint = xpPoint
     db.xp.projRelativePoint = xpRel
@@ -535,6 +570,8 @@ function ST:LoadState()
     self.xp.startValue = db.xp.startValue or 0
     self.xp.maxAtStart = db.xp.maxAtStart or 1
     self.xp.gained = db.xp.gained or 0
+    self.xp.kill = db.xp.kill or 0
+    self.xp.quest = db.xp.quest or 0
     if self.xp.running then
         self.xp.anchor = GetTime()
         if self.xpStartPauseButton then
@@ -706,6 +743,8 @@ function ST:RegisterEvents()
     f:RegisterEvent("PLAYER_ENTERING_WORLD")
     f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     f:RegisterEvent("CHAT_MSG_LOOT")
+    f:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN")
+    f:RegisterEvent("QUEST_TURNED_IN")
     f:SetScript("OnEvent", function(_, event, ...)
         if event == "PLAYER_LOGOUT" then
             self:SaveDB()
@@ -732,6 +771,14 @@ function ST:RegisterEvents()
         elseif event == "CHAT_MSG_LOOT" then
             if self.OnGatherLoot then
                 self:OnGatherLoot(...)
+            end
+        elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
+            if self.OnCombatXPGain then
+                self:OnCombatXPGain(...)
+            end
+        elseif event == "QUEST_TURNED_IN" then
+            if self.OnQuestTurnedIn then
+                self:OnQuestTurnedIn(...)
             end
         end
     end)

@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.5.8 — Aligned clocks
+
+- Duration label is gone. Timer and stopwatch times sit on the same line.
+
+## 2.5.7 — Label colons
+
+- A little more space between lines. Colons are gone after XP/hr, Gold/hr, elapsed, TTL, Kill, and Quest.
+
+## 2.5.6 — Tighter type
+
+- Headline numbers are one step smaller. Lines sit closer. Kill and Quest use a colon.
+
+## 2.5.5 — Tighter clocks
+
+- TTL, gathering, and elapsed show hours and minutes only. The reminder hint is gone. Lines sit a little closer together.
+
+## 2.5.4 — Less label clutter
+
+- Dropped the XP and Gold headings, and the Gained labels. The numbers stay.
+
+## 2.5.3 — Kill and quest XP
+
+- The XP column shows Kill and Quest under the session total. Kills come from combat XP, quests from turn-ins. The overlay shows the same split.
+
+## 2.5.2 — Steadier XP and gold rates
+
+- XP/hr, gold/hr, and time-to-level refresh every 30 seconds instead of every tick. Elapsed time still counts live.
+
 ## 2.5.1 — Ping wheel removed
 
 - The Ping tab is gone. Forever already has the ping wheel in the client.

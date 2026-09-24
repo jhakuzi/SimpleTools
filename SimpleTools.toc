@@ -3,7 +3,7 @@
 ## Title: SimpleTools
 ## Notes: Timers, XP/gold/gather trackers, shopping list, reminders, and notes. Midnight and WoW Forever.
 ## Author: Jhakuzi
-## Version: 2.5.1
+## Version: 2.5.8
 ## IconTexture: Interface\AddOns\SimpleTools\Media\icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB

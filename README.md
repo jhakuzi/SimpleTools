@@ -1,4 +1,4 @@
-# SimpleTools 2.5.1
+# SimpleTools 2.5.8
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -29,7 +29,7 @@ Esc also closes the window. Open from the addon compartment (minimap cluster dro
 ## Features
 
 - **Time** — Timer, Stopwatch, and Reminder side by side; timer and stopwatch **Send to screen** overlays
-- **XP/Gold** — session XP (rate, TTL, rested) and gold/hr in one tab, each with its own overlay
+- **XP/Gold** — session XP (rate, TTL, rested) and gold/hr in one tab, each with its own overlay. Kill and Quest sit under the XP total. Rates refresh every 30 seconds; the elapsed clock still ticks.
 - **Gather** — nodes/hr for herbalism, mining, and skinning; session list of herbs, ores, and leather; **Send to screen** overlay
 - **Notepad** — notes persist (debounced save); **Clear** plus an **editable** **Send to screen** HUD
 - **Shop** — shift-click bag items or pick a profession reagent; edit qty on the list or overlay; shift-click a row into auction house search
