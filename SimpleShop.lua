@@ -656,6 +656,62 @@ function ST:ClearShopList()
     self:SaveDB()
 end
 
+function ST:ShopBagCount(entry)
+    if not entry then
+        return nil
+    end
+    local item = entry.id
+    if not item or item == 0 then
+        item = entry.link or entry.name
+    end
+    if not item or item == "" then
+        return nil
+    end
+    local count
+    if C_Item and C_Item.GetItemCount then
+        count = C_Item.GetItemCount(item, false)
+    elseif GetItemCount then
+        count = GetItemCount(item, false)
+    end
+    if count == nil or self:IsSecret(count) then
+        return nil
+    end
+    return self:PlainNumber(count) or 0
+end
+
+function ST:ShopProgressText(entry)
+    local need = math.max(1, math.floor(tonumber(entry and entry.count) or 1))
+    local have = self:ShopBagCount(entry)
+    if have == nil then
+        return "|cff9a9a9a?/" .. need .. "|r"
+    end
+    local label = have .. "/" .. need
+    if have >= need then
+        return "|cff3dcc3d" .. label .. " ✓|r"
+    end
+    return "|cffe8c478" .. label .. "|r"
+end
+
+function ST:ScheduleShopBagRefresh()
+    if self.shopBagPending then
+        return
+    end
+    self.shopBagPending = true
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0.2, function()
+            self.shopBagPending = false
+            if self.RefreshShopList then
+                self:RefreshShopList()
+            end
+        end)
+    else
+        self.shopBagPending = false
+        if self.RefreshShopList then
+            self:RefreshShopList()
+        end
+    end
+end
+
 function ST:ShopSearchAH(entry)
     if not entry then
         return
@@ -1014,7 +1070,7 @@ function ST:BindShopEntryRow(row)
             else
                 GameTooltip:SetText(selfObj.entry.name or "Item")
             end
-            GameTooltip:AddLine("Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
+            GameTooltip:AddLine("Bags " .. (ST:ShopProgressText(selfObj.entry):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) .. ". Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
             GameTooltip:Show()
         end
     end)
@@ -1045,13 +1101,17 @@ function ST:AcquireShopRow(i)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
 
-    row.qty = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
-    row.qty:SetSize(36, 16)
+    -- Same plain number as the projected list. No input-box end caps.
+    row.qty = CreateFrame("EditBox", nil, row)
+    row.qty:SetSize(32, 14)
     row.qty:SetPoint("LEFT", 2, 0)
     row.qty:SetAutoFocus(false)
     row.qty:SetNumeric(true)
     row.qty:SetMaxLetters(4)
     row.qty:SetJustifyH("RIGHT")
+    row.qty:SetFontObject("GameFontHighlightSmall")
+    row.qty:SetTextInsets(0, 1, 0, 0)
+    row.qty:SetTextColor(0.95, 0.9, 0.78)
 
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", row.qty, "RIGHT", 6, 0)
@@ -1072,6 +1132,13 @@ function ST:AcquireShopRow(i)
     end)
 
     self:BindShopQty(row)
+    row.qty:HookScript("OnEditFocusGained", function(selfBox)
+        selfBox:HighlightText()
+        selfBox:SetTextColor(1, 0.86, 0.45)
+    end)
+    row.qty:HookScript("OnEditFocusLost", function(selfBox)
+        selfBox:SetTextColor(0.95, 0.9, 0.78)
+    end)
     self:BindShopEntryRow(row)
     self.shopListRows[i] = row
     return row
@@ -1091,7 +1158,7 @@ function ST:RefreshShopList()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText("x " .. link)
+            row.text:SetText(self:ShopProgressText(entry) .. "  x " .. link)
             if row.qty and not row.qty:HasFocus() then
                 row.qty:SetText(tostring(entry.count or 1))
             end
@@ -1210,13 +1277,17 @@ function ST:AcquireShopProjRow(i)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
 
-    row.qty = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
-    row.qty:SetSize(36, 16)
+    -- No InputBoxTemplate: those end-caps overflow a short qty on the HUD.
+    row.qty = CreateFrame("EditBox", nil, row)
+    row.qty:SetSize(32, 14)
     row.qty:SetPoint("LEFT", 2, 0)
     row.qty:SetAutoFocus(false)
     row.qty:SetNumeric(true)
     row.qty:SetMaxLetters(4)
     row.qty:SetJustifyH("RIGHT")
+    row.qty:SetFontObject("GameFontHighlightSmall")
+    row.qty:SetTextInsets(0, 1, 0, 0)
+    row.qty:SetTextColor(0.95, 0.9, 0.78)
 
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", row.qty, "RIGHT", 6, 0)
@@ -1237,6 +1308,13 @@ function ST:AcquireShopProjRow(i)
     end)
 
     self:BindShopQty(row)
+    row.qty:HookScript("OnEditFocusGained", function(selfBox)
+        selfBox:HighlightText()
+        selfBox:SetTextColor(1, 0.86, 0.45)
+    end)
+    row.qty:HookScript("OnEditFocusLost", function(selfBox)
+        selfBox:SetTextColor(0.95, 0.9, 0.78)
+    end)
     self:BindShopEntryRow(row)
     self.shopProjRows[i] = row
     return row
@@ -1256,7 +1334,7 @@ function ST:RefreshShopProjected()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText("x " .. link)
+            row.text:SetText(self:ShopProgressText(entry) .. "  x " .. link)
             if row.qty and not row.qty:HasFocus() then
                 row.qty:SetText(tostring(entry.count or 1))
             end

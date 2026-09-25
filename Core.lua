@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.8"
+ST.VERSION = "2.5.11"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -745,6 +745,10 @@ function ST:RegisterEvents()
     f:RegisterEvent("CHAT_MSG_LOOT")
     f:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN")
     f:RegisterEvent("QUEST_TURNED_IN")
+    f:RegisterEvent("BAG_UPDATE")
+    pcall(function()
+        f:RegisterEvent("BAG_UPDATE_DELAYED")
+    end)
     f:SetScript("OnEvent", function(_, event, ...)
         if event == "PLAYER_LOGOUT" then
             self:SaveDB()
@@ -764,6 +768,9 @@ function ST:RegisterEvents()
             if self.UpdateGatherTracker then
                 self:UpdateGatherTracker()
             end
+            if self.RefreshShopList then
+                self:RefreshShopList()
+            end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             if self.OnGatherSpell then
                 self:OnGatherSpell(...)
@@ -779,6 +786,10 @@ function ST:RegisterEvents()
         elseif event == "QUEST_TURNED_IN" then
             if self.OnQuestTurnedIn then
                 self:OnQuestTurnedIn(...)
+            end
+        elseif event == "BAG_UPDATE" or event == "BAG_UPDATE_DELAYED" then
+            if self.ScheduleShopBagRefresh then
+                self:ScheduleShopBagRefresh()
             end
         end
     end)

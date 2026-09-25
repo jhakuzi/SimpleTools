@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.5.11 — Plain shop quantities
+
+- The shop list in the main window uses the same plain quantity as the overlay.
+
+## 2.5.10 — Cleaner shop overlay qty
+
+- The projected shop quantity is a plain number. The old input-box end caps are gone, and you can still click it to type.
+
+## 2.5.9 — Shop bag counts
+
+- Each shop row shows bags/needed. Full rows turn green and get a check, including on the overlay.
+
 ## 2.5.8 — Aligned clocks
 
 - Duration label is gone. Timer and stopwatch times sit on the same line.
