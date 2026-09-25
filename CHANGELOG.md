@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.10 — Cleaner shop overlay qty
+
+- The projected shop quantity is a plain number. The old input-box end caps are gone, and you can still click it to type.
+
 ## 2.5.9 — Shop bag counts
 
 - Each shop row shows bags/needed. Full rows turn green and get a check, including on the overlay.

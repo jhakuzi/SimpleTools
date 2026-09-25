@@ -1,4 +1,4 @@
-# SimpleTools 2.5.9
+# SimpleTools 2.5.10
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
