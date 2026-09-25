@@ -1101,13 +1101,17 @@ function ST:AcquireShopRow(i)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
     row:SetPoint("TOPRIGHT", -16, -(i - 1) * ROW_HEIGHT)
 
-    row.qty = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
-    row.qty:SetSize(36, 16)
+    -- Same plain number as the projected list. No input-box end caps.
+    row.qty = CreateFrame("EditBox", nil, row)
+    row.qty:SetSize(32, 14)
     row.qty:SetPoint("LEFT", 2, 0)
     row.qty:SetAutoFocus(false)
     row.qty:SetNumeric(true)
     row.qty:SetMaxLetters(4)
     row.qty:SetJustifyH("RIGHT")
+    row.qty:SetFontObject("GameFontHighlightSmall")
+    row.qty:SetTextInsets(0, 1, 0, 0)
+    row.qty:SetTextColor(0.95, 0.9, 0.78)
 
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", row.qty, "RIGHT", 6, 0)
@@ -1128,6 +1132,13 @@ function ST:AcquireShopRow(i)
     end)
 
     self:BindShopQty(row)
+    row.qty:HookScript("OnEditFocusGained", function(selfBox)
+        selfBox:HighlightText()
+        selfBox:SetTextColor(1, 0.86, 0.45)
+    end)
+    row.qty:HookScript("OnEditFocusLost", function(selfBox)
+        selfBox:SetTextColor(0.95, 0.9, 0.78)
+    end)
     self:BindShopEntryRow(row)
     self.shopListRows[i] = row
     return row

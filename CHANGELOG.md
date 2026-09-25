@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.11 — Plain shop quantities
+
+- The shop list in the main window uses the same plain quantity as the overlay.
+
 ## 2.5.10 — Cleaner shop overlay qty
 
 - The projected shop quantity is a plain number. The old input-box end caps are gone, and you can still click it to type.
