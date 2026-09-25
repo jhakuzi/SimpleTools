@@ -1,4 +1,4 @@
-# SimpleTools 2.5.8
+# SimpleTools 2.5.9
 
 Lightweight QoL for **World of Warcraft: Midnight** and **WoW Forever**.
 
@@ -49,6 +49,7 @@ Open the **Shop** tab. Add items two ways:
 
 A prompt asks how many. Matching items stack on the same row. Reagent lists cover Alchemy, Blacksmithing, Enchanting (including Forever's Mote of Magic), Engineering, Leatherworking, Tailoring, Cooking, and First Aid.
 
+- Each row shows bags/needed (`14/23`). The count turns green with a check when the bags are full
 - Shift-click a row with the auction house open to fill the search box and run the search (works on the projected overlay too)
 - Right-click a row (or the **x**) to remove it
 - **Clear list** wipes the list

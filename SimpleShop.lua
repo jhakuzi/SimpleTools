@@ -656,6 +656,62 @@ function ST:ClearShopList()
     self:SaveDB()
 end
 
+function ST:ShopBagCount(entry)
+    if not entry then
+        return nil
+    end
+    local item = entry.id
+    if not item or item == 0 then
+        item = entry.link or entry.name
+    end
+    if not item or item == "" then
+        return nil
+    end
+    local count
+    if C_Item and C_Item.GetItemCount then
+        count = C_Item.GetItemCount(item, false)
+    elseif GetItemCount then
+        count = GetItemCount(item, false)
+    end
+    if count == nil or self:IsSecret(count) then
+        return nil
+    end
+    return self:PlainNumber(count) or 0
+end
+
+function ST:ShopProgressText(entry)
+    local need = math.max(1, math.floor(tonumber(entry and entry.count) or 1))
+    local have = self:ShopBagCount(entry)
+    if have == nil then
+        return "|cff9a9a9a?/" .. need .. "|r"
+    end
+    local label = have .. "/" .. need
+    if have >= need then
+        return "|cff3dcc3d" .. label .. " ✓|r"
+    end
+    return "|cffe8c478" .. label .. "|r"
+end
+
+function ST:ScheduleShopBagRefresh()
+    if self.shopBagPending then
+        return
+    end
+    self.shopBagPending = true
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0.2, function()
+            self.shopBagPending = false
+            if self.RefreshShopList then
+                self:RefreshShopList()
+            end
+        end)
+    else
+        self.shopBagPending = false
+        if self.RefreshShopList then
+            self:RefreshShopList()
+        end
+    end
+end
+
 function ST:ShopSearchAH(entry)
     if not entry then
         return
@@ -1014,7 +1070,7 @@ function ST:BindShopEntryRow(row)
             else
                 GameTooltip:SetText(selfObj.entry.name or "Item")
             end
-            GameTooltip:AddLine("Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
+            GameTooltip:AddLine("Bags " .. (ST:ShopProgressText(selfObj.entry):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) .. ". Shift-click: AH search. Right-click or x: remove.", 0.8, 0.8, 0.8, true)
             GameTooltip:Show()
         end
     end)
@@ -1091,7 +1147,7 @@ function ST:RefreshShopList()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText("x " .. link)
+            row.text:SetText(self:ShopProgressText(entry) .. "  x " .. link)
             if row.qty and not row.qty:HasFocus() then
                 row.qty:SetText(tostring(entry.count or 1))
             end
@@ -1256,7 +1312,7 @@ function ST:RefreshShopProjected()
             row.index = i
             row.entry = entry
             local link = entry.link or entry.name
-            row.text:SetText("x " .. link)
+            row.text:SetText(self:ShopProgressText(entry) .. "  x " .. link)
             if row.qty and not row.qty:HasFocus() then
                 row.qty:SetText(tostring(entry.count or 1))
             end
