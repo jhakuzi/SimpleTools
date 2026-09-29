@@ -1,6 +1,6 @@
 # SimpleTools
 
-Lightweight QoL for WoW Midnight and WoW Forever.
+Lightweight QoL for WoW Forever.
 
 Timer, stopwatch, reminder, XP and gold per hour, gathering, notepad, and a shopping list. Any of them can be sent to the screen.
 

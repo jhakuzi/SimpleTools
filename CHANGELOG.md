@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.0 — Forever only
+
+- Midnight is no longer a target. Both TOC files are interface 16001 and load only on Camelot.
+
 ## 2.5.11 — Plain shop quantities
 
 - The shop list in the main window uses the same plain quantity as the overlay.
