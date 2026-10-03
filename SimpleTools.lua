@@ -83,7 +83,7 @@ function ST:CreateMainFrame()
     self.simpleNotepadFrame = self.tabFrames[4]
     self.shopFrame = self.tabFrames[5]
 
-    self:SelectTab(1)
+    -- LoadState selects the saved tab after all frames have been created.
     frame:Hide()
 end
 
