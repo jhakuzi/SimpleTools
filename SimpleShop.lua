@@ -1043,18 +1043,32 @@ function ST:BindShopQty(row)
     if not row.qty then
         return
     end
+    row.qty:SetScript("OnEditFocusGained", function(selfBox)
+        -- Rows can be rebound by a list refresh while this edit has focus.
+        selfBox.shopEntry = row.entry
+    end)
     row.qty:SetScript("OnEnterPressed", function(selfBox)
-        ST:SetShopItemCount(row.index, tonumber(selfBox:GetText()))
+        -- Focus loss is the single commit path, including removal with zero.
         selfBox:ClearFocus()
     end)
     row.qty:SetScript("OnEditFocusLost", function(selfBox)
-        if row.index then
-            ST:SetShopItemCount(row.index, tonumber(selfBox:GetText()) or (row.entry and row.entry.count))
+        local entry = selfBox.shopEntry
+        selfBox.shopEntry = nil
+        if not entry then
+            return
+        end
+        for index, item in ipairs(ST.shopItems or {}) do
+            if item == entry then
+                ST:SetShopItemCount(index, tonumber(selfBox:GetText()) or entry.count)
+                break
+            end
         end
     end)
     row.qty:SetScript("OnEscapePressed", function(selfBox)
-        if row.entry then
-            selfBox:SetText(tostring(row.entry.count or 1))
+        local entry = selfBox.shopEntry
+        selfBox.shopEntry = nil
+        if entry then
+            selfBox:SetText(tostring(entry.count or 1))
         end
         selfBox:ClearFocus()
     end)
