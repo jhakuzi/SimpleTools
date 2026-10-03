@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.5.11"
+ST.VERSION = "2.6.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -855,7 +855,7 @@ function ST:TryCreateButton(name, parent, template)
     return nil
 end
 
--- Forever / Midnight windows use DefaultPanelTemplate (brown metal nine-slice).
+-- Forever windows use DefaultPanelTemplate (brown metal nine-slice).
 -- Fall back to the older inset frame if a client is missing the new kit.
 function ST:CreateThemedPanel(name, parent)
     local frame = self:TryCreateFrame(name, parent or UIParent, "DefaultPanelTemplate")
