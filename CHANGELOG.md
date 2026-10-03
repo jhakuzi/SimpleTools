@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.1 — One TOC
+
+- Removed the duplicate `SimpleTools_Camelot.toc`. `SimpleTools.toc` is interface 16001 and still locked to Camelot.
+
 ## 2.6.0 — Forever only
 
 - Midnight is no longer a target. Both TOC files are interface 16001 and load only on Camelot.
