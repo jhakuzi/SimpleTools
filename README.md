@@ -21,6 +21,12 @@ Then `/reload`.
 
 Bookmarks and break state survive `/reload`. Break countdowns measure time in the game session; they do not count time while logged out. Existing tabs keep their original positions, with Locations and Break appended.
 
+## Combat logging
+
+The **Logs** tab starts or stops WoW's combat logging and shows the current state. **Send to screen** creates a draggable status overlay with its own Start/Stop button, which stays visible with the main window closed. Closing the overlay does not stop logging. Status follows `/combatlog` and other addons, and reloads restore overlay visibility and position without changing the client's logging state.
+
+WoW manages the combat log in its `Logs` folder. Addons cannot create separate log files, rename them, or delete them; manage those files outside the game.
+
 ## Development checks
 
 Run from the addon folder with Lua 5.1:
@@ -29,6 +35,7 @@ Run from the addon folder with Lua 5.1:
 luac5.1 -p ./*.lua tests/*.lua
 lua5.1 tests/regression.lua
 lua5.1 tests/new-tools.lua
+lua5.1 tests/logging.lua
 ```
 
 The tests use game API stubs. Check actual map navigation, UI layout at different sizes, reminders with the window closed, and saved-state restoration in WoW as well.

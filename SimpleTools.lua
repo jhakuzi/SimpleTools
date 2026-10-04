@@ -11,6 +11,7 @@ local TABS = {
     { key = "shop",    label = "Shop",     width = 50 },
     { key = "locations", label = "Locations", width = 76 },
     { key = "break",   label = "Break",    width = 56 },
+    { key = "logs",    label = "Logs",     width = 50 },
 }
 
 function ST:CreateMainFrame()
@@ -80,6 +81,7 @@ function ST:CreateMainFrame()
     self.tabFrames[5] = self:CreateSimpleShopUI(self.contentFrame)
     self.tabFrames[6] = self:CreateLocationsUI(self.contentFrame)
     self.tabFrames[7] = self:CreateBreakUI(self.contentFrame)
+    self.tabFrames[8] = self:CreateLoggingUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleXPFrame = self.tabFrames[2]
@@ -206,6 +208,7 @@ function ST:SelectTab(id)
     if self.db and self.db.ui then
         self.db.ui.selectedTab = id
     end
+    self:RefreshTicker()
 end
 
 function ST:CreateTimeTab(parent)

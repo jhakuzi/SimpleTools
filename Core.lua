@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.7.0"
+ST.VERSION = "2.7.1"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -44,6 +44,7 @@ local DEFAULTS = {
     },
     locations = { bookmarks = {} },
     breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
+    logging = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
     timer = {
         remaining = 0,
         total = 0,
@@ -160,6 +161,7 @@ ST.notepadProjected = false
 ST.shopItems = {}
 ST.shopProjected = false
 ST.locationBookmarks = {}
+ST.loggingProjected = false
 ST.breakTimer = { interval = 60, snooze = 5, remaining = 0, running = false, due = false, anchor = 0 }
 
 local function CopyDefaults(src, dest)
@@ -414,6 +416,10 @@ function ST:SaveDB()
     db.breakReminder.remaining = breakTimer.remaining
     db.breakReminder.running = breakTimer.running
     db.breakReminder.due = breakTimer.due
+    db.logging.projected = self.loggingProjected
+    local logPoint, logRel, logX, logY = SnapshotPoint(self.loggingProjectedFrame, db.logging)
+    db.logging.projPoint, db.logging.projRelativePoint = logPoint, logRel
+    db.logging.projX, db.logging.projY = logX, logY
 
     db.timer.remaining = self.timer.remaining
     db.timer.total = self.timer.total
@@ -691,6 +697,8 @@ function ST:LoadState()
         self:SelectTab(db.ui.selectedTab)
     end
     self:LoadBreakState(db.breakReminder)
+    self:UpdateLoggingDisplay()
+    if db.logging.projected then self:ShowLoggingProjected(true, db.logging) end
 end
 
 function ST:IsBusy()
@@ -709,6 +717,7 @@ function ST:RefreshTicker()
     if self.breakTimer.running and not needFast then
         interval = 1
     end
+    if self:IsLoggingVisible() and not needFast then interval = 1 end
 
     if self.tickerInterval == interval and self.ticker then
         return
@@ -755,6 +764,7 @@ function ST:OnTick()
 
     self:CheckReminder()
     self:CheckBreakReminder()
+    if self:IsLoggingVisible() then self:UpdateLoggingDisplay() end
 end
 
 function ST:RegisterEvents()
