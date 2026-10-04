@@ -20,6 +20,8 @@ The **Logs** tab starts or stops WoW's combat logging. **Send to screen** shows 
 
 WoW manages files in its `Logs` folder. Creating separate log files, renaming, and deleting them must be done outside the addon.
 
+**Auto logging: On/Off** starts logging when you enter a dungeon or raid (including loading into one). It is off by default and remembers your choice. Enabling it while already inside starts logging immediately. Leaving an instance or turning the option off does not stop logging; use **Stop logging** when finished.
+
 
 ## Commands
 

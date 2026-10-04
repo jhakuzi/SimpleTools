@@ -44,7 +44,7 @@ local DEFAULTS = {
     },
     locations = { bookmarks = {} },
     breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
-    logging = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
+    logging = { autoStart = false, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
     timer = {
         remaining = 0,
         total = 0,
@@ -790,6 +790,7 @@ function ST:RegisterEvents()
         elseif event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" then
             self:OnXPUpdate()
         elseif event == "PLAYER_ENTERING_WORLD" then
+            self:AutoStartCombatLogging()
             if self.gold.running then
                 local money = self:PlainNumber(GetMoney())
                 if money then

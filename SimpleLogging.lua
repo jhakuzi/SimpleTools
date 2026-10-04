@@ -26,24 +26,49 @@ function ST:UpdateLoggingDisplay()
         button:SetText(enabled and "Stop logging" or "Start logging")
         button:SetEnabled(enabled ~= nil)
     end
+    if self.loggingAutoButton then
+        self.loggingAutoButton:SetText(self.db and self.db.logging.autoStart and "Auto logging: On" or "Auto logging: Off")
+    end
 end
 
-function ST:ToggleCombatLogging()
-    local enabled = self:GetLoggingState()
-    if enabled == nil then
+function ST:SetCombatLogging(enabled)
+    local previous = self:GetLoggingState()
+    if previous == nil then
         self:Print("Combat logging is unavailable on this client.")
         self:UpdateLoggingDisplay()
         return false
     end
-    local ok = pcall(LoggingCombat, not enabled)
+    if previous == enabled then
+        self:UpdateLoggingDisplay()
+        return true
+    end
+    local ok = pcall(LoggingCombat, enabled)
     local current = self:GetLoggingState()
     self:UpdateLoggingDisplay()
-    if not ok or current ~= not enabled then
+    if not ok or current ~= enabled then
         self:Print("Unable to change combat logging. Try /combatlog.")
         return false
     end
     self:Print(current and "Combat logging started." or "Combat logging stopped.")
     return true
+end
+
+function ST:ToggleCombatLogging()
+    return self:SetCombatLogging(not self:GetLoggingState())
+end
+
+function ST:AutoStartCombatLogging()
+    if not self.db or not self.db.logging.autoStart or type(IsInInstance) ~= "function" then return false end
+    local inInstance, instanceType = IsInInstance()
+    if not inInstance or (instanceType ~= "party" and instanceType ~= "raid") then return false end
+    return self:SetCombatLogging(true)
+end
+
+function ST:ToggleAutoCombatLogging()
+    self.db.logging.autoStart = not self.db.logging.autoStart
+    self:SaveDB()
+    self:UpdateLoggingDisplay()
+    if self.db.logging.autoStart then self:AutoStartCombatLogging() end
 end
 
 function ST:CreateLoggingProjectedFrame()
@@ -85,13 +110,15 @@ function ST:CreateLoggingUI(parent)
     hint:SetPoint("TOPLEFT", 16, -38)
     hint:SetPoint("TOPRIGHT", -16, -38)
     hint:SetJustifyH("CENTER")
-    hint:SetText("Writes to WoW's combat log in the game's Logs folder.\nFile creation, renaming, and deletion are managed outside the addon.\nHiding the window or overlay does not stop logging.")
+    hint:SetText("Auto logging starts on entering a dungeon or raid. Stop logging manually.\nHiding the window or overlay does not stop logging.\nManage log files in WoW's Logs folder outside the addon.")
     self.loggingToggleButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.loggingToggleButton:SetScript("OnClick", function() ST:ToggleCombatLogging() end)
     self.loggingProjectButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.loggingProjectButton:SetText("Send to screen")
     self.loggingProjectButton:SetScript("OnClick", function() ST:ShowLoggingProjected(not ST.loggingProjected) end)
-    self:LayoutBottomPair(frame, self.loggingToggleButton, self.loggingProjectButton)
+    self.loggingAutoButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.loggingAutoButton:SetScript("OnClick", function() ST:ToggleAutoCombatLogging() end)
+    self:LayoutTrackerButtons(frame, self.loggingToggleButton, self.loggingProjectButton, self.loggingAutoButton)
     local function refresh()
         ST:UpdateLoggingDisplay()
         ST:RefreshTicker()

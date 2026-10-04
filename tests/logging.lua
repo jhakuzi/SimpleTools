@@ -68,4 +68,50 @@ equal(ST:ToggleCombatLogging(), false)
 LoggingCombat = function(value) return false end
 equal(ST:ToggleCombatLogging(), false)
 equal(ST.loggingStatus.text, 'Logging: Stopped')
+-- Automatic logging is opt-in and restricted to dungeon/raid entry.
+local instanceType = 'none'
+IsInInstance = function() return instanceType ~= 'none', instanceType end
+LoggingCombat = function(value)
+    if value ~= nil then enabled = value; writes = writes + 1 end
+    return enabled
+end
+enabled = false
+ST.db.logging.autoStart = false
+before = writes
+instanceType = 'party'
+equal(ST:AutoStartCombatLogging(), false)
+equal(writes, before)
+ST.loggingAutoButton.scripts.OnClick()
+equal(ST.db.logging.autoStart, true)
+equal(enabled, true)
+equal(ST.loggingAutoButton.text, 'Auto logging: On')
+before = writes
+ST:AutoStartCombatLogging()
+equal(writes, before)
+ST.loggingAutoButton.scripts.OnClick()
+equal(ST.db.logging.autoStart, false)
+equal(enabled, true)
+ST.db.logging.autoStart = true
+for _, kind in ipairs({'none', 'pvp', 'arena', 'scenario'}) do
+    instanceType = kind
+    enabled = false
+    before = writes
+    equal(ST:AutoStartCombatLogging(), false)
+    equal(writes, before)
+end
+-- Exercise the actual event handler, not just the helper.
+ST:RegisterEvents()
+instanceType = 'raid'
+enabled = false
+ST.eventFrame.scripts.OnEvent(ST.eventFrame, 'PLAYER_ENTERING_WORLD')
+equal(enabled, true)
+instanceType = 'none'
+ST.eventFrame.scripts.OnEvent(ST.eventFrame, 'PLAYER_ENTERING_WORLD')
+equal(enabled, true)
+ST:SaveDB()
+ST:LoadState()
+equal(ST.db.logging.autoStart, true)
+LoggingCombat = function() error('Unavailable') end
+instanceType = 'party'
+equal(ST:AutoStartCombatLogging(), false)
 print(string.format('PASS: %d logging assertions', checks))
