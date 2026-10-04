@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.0 — Locations and breaks
+
+- Added a Locations tab for named coordinate bookmarks, map navigation, and removal.
+- Added a Break tab with configurable intervals, pause/resume, snooze, and a reminder visible while the main window is closed.
+- Bookmarks and break countdown state persist through reloads; the new tabs follow the existing five tabs.
+- Fixed double commits when editing shopping quantities and restored saved tab selection at startup.
+- Added headless regression checks for quantity edits, tabs, bookmarks, and break reminder state.
+
 ## 2.6.1 — One TOC
 
 - Removed the duplicate `SimpleTools_Camelot.toc`. `SimpleTools.toc` is interface 16001 and still locked to Camelot.

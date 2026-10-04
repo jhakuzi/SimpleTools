@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.6.1"
+ST.VERSION = "2.7.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -42,6 +42,8 @@ local DEFAULTS = {
         minimapAngle = 200,
         defaultDuration = 10,
     },
+    locations = { bookmarks = {} },
+    breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
     timer = {
         remaining = 0,
         total = 0,
@@ -157,6 +159,8 @@ ST.notepadText = ""
 ST.notepadProjected = false
 ST.shopItems = {}
 ST.shopProjected = false
+ST.locationBookmarks = {}
+ST.breakTimer = { interval = 60, snooze = 5, remaining = 0, running = false, due = false, anchor = 0 }
 
 local function CopyDefaults(src, dest)
     dest = dest or {}
@@ -356,6 +360,10 @@ end
 
 function ST:CaptureRunningDurations()
     local now = GetTime()
+    if self.breakTimer.running then
+        self.breakTimer.remaining = math.max(0, self.breakTimer.remaining - (now - self.breakTimer.anchor))
+        self.breakTimer.anchor = now
+    end
     if self.timer.running then
         self.timer.remaining = math.max(0, self.timer.remaining - (now - self.timer.anchor))
         self.timer.anchor = now
@@ -399,6 +407,13 @@ function ST:SaveDB()
 
     local db = self.db
     db.version = self.DB_VERSION
+    db.locations.bookmarks = self:CopyLocationBookmarks(self.locationBookmarks)
+    local breakTimer = self.breakTimer
+    db.breakReminder.interval = breakTimer.interval
+    db.breakReminder.snooze = breakTimer.snooze
+    db.breakReminder.remaining = breakTimer.remaining
+    db.breakReminder.running = breakTimer.running
+    db.breakReminder.due = breakTimer.due
 
     db.timer.remaining = self.timer.remaining
     db.timer.total = self.timer.total
@@ -515,6 +530,9 @@ function ST:LoadState()
     if not db then
         return
     end
+    self.locationBookmarks = self:CopyLocationBookmarks(db.locations.bookmarks)
+    self.selectedLocation = nil
+    self:RefreshLocationList()
 
     self.timer.remaining = db.timer.remaining or 0
     self.timer.total = db.timer.total or 0
@@ -672,10 +690,11 @@ function ST:LoadState()
         end
         self:SelectTab(db.ui.selectedTab)
     end
+    self:LoadBreakState(db.breakReminder)
 end
 
 function ST:IsBusy()
-    return self.timer.running or self.watch.running or self.xp.running or self.gold.running or self.gather.running or self.reminder.set
+    return self.timer.running or self.watch.running or self.xp.running or self.gold.running or self.gather.running or self.reminder.set or self.breakTimer.running
 end
 
 function ST:RefreshTicker()
@@ -686,6 +705,9 @@ function ST:RefreshTicker()
         interval = 0.25
     elseif needSlow then
         interval = 15
+    end
+    if self.breakTimer.running and not needFast then
+        interval = 1
     end
 
     if self.tickerInterval == interval and self.ticker then
@@ -732,6 +754,7 @@ function ST:OnTick()
     end
 
     self:CheckReminder()
+    self:CheckBreakReminder()
 end
 
 function ST:RegisterEvents()

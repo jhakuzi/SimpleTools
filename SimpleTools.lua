@@ -9,6 +9,8 @@ local TABS = {
     { key = "gather",  label = "Gather",   width = 62 },
     { key = "notepad", label = "Notepad",  width = 70 },
     { key = "shop",    label = "Shop",     width = 50 },
+    { key = "locations", label = "Locations", width = 76 },
+    { key = "break",   label = "Break",    width = 56 },
 }
 
 function ST:CreateMainFrame()
@@ -76,6 +78,8 @@ function ST:CreateMainFrame()
     self.tabFrames[3] = self:CreateSimpleGatherUI(self.contentFrame)
     self.tabFrames[4] = self:CreateSimpleNotepadUI(self.contentFrame)
     self.tabFrames[5] = self:CreateSimpleShopUI(self.contentFrame)
+    self.tabFrames[6] = self:CreateLocationsUI(self.contentFrame)
+    self.tabFrames[7] = self:CreateBreakUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleXPFrame = self.tabFrames[2]
