@@ -2,7 +2,7 @@
 
 Lightweight QoL for WoW Forever.
 
-Timer, stopwatch, reminder, XP and gold per hour, gathering, notepad, and a shopping list. Any of them can be sent to the screen.
+Timer, stopwatch, reminder, XP and gold per hour, gathering, notepad, and a shopping list. Additionally you can set up a break timer and save/share your current location on the map and in a list. Any of them can be sent to the screen.
 
 ## Install
 
