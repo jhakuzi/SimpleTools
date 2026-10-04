@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Title: SimpleTools
-## Notes: Timers, XP/gold/gather trackers, shopping list, reminders, and notes for WoW Forever.
+## Notes: Timers, trackers, shopping list, notes, location bookmarks, and break reminders for WoW Forever.
 ## Author: Jhakuzi
-## Version: 2.6.1
+## Version: 2.7.0
 ## IconTexture: Interface\AddOns\SimpleTools\Media\icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB
@@ -20,3 +20,5 @@ SimpleGold.lua
 SimpleGather.lua
 SimpleNotepad.lua
 SimpleShop.lua
+SimpleLocations.lua
+SimpleBreak.lua
