@@ -17,10 +17,8 @@ Then `/reload`.
 
 ## Commands
 
-| Command | Action |
+| Command | action |
 | --- | --- |
 | `/tools` | Open or close |
-| `/tools options` | Settings |
-| `/tools resetpos` | Recenter the window |
 
 `/simpletools` and `/st` do the same as `/tools`.
