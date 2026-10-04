@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.7.1 — Combat logging
+
+- Added a Logs tab with combat logging status and Start/Stop controls.
+- Added an optional, saved Auto logging toggle for dungeon and raid entry; stopping remains manual.
+- Added a draggable logging overlay with a small Start/Stop button; hiding it leaves logging running.
+- Status follows changes from `/combatlog` or other addons. Reload restores the overlay without automatically starting or stopping logging.
+
 ## 2.7.0 — Locations and breaks
 
 - Added a Locations tab for named coordinate bookmarks, map navigation, and removal.
