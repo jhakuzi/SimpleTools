@@ -1,6 +1,7 @@
 local addonName, ST = ...
 local CreateFrame = CreateFrame
 local GetTime = GetTime
+local BREAK_MESSAGE = "Please take a break, walk around, and drink some water!"
 
 local function Minutes(value, fallback)
     local number = tonumber(value)
@@ -51,6 +52,7 @@ function ST:StartBreakReminder(snooze)
     self:SaveDB()
     self:RefreshTicker()
     self:UpdateBreakDisplay()
+    self:Print("Next break in " .. self:FormatTime(remaining) .. ". " .. BREAK_MESSAGE)
     return true
 end
 
@@ -82,7 +84,7 @@ function ST:CheckBreakReminder()
         timer.remaining, timer.running, timer.due = 0, false, true
         self:ShowBreakAlert()
         self:PlayAlert()
-        self:Print("Time for a break! Stretch, rest your eyes, or grab some water.")
+        self:Print(BREAK_MESSAGE)
         self:SaveDB()
         self:RefreshTicker()
     end
@@ -116,8 +118,11 @@ function ST:ShowBreakAlert()
         heading:SetPoint("TOP", 0, -10)
         heading:SetText("Time for a break")
         local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        hint:SetPoint("TOP", 0, -34)
-        hint:SetText("Stretch, rest your eyes, or grab some water.")
+        hint:SetPoint("TOPLEFT", 12, -34)
+        hint:SetPoint("TOPRIGHT", -12, -34)
+        hint:SetJustifyH("CENTER")
+        hint:SetWordWrap(true)
+        hint:SetText(BREAK_MESSAGE)
         local snooze = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
         snooze:SetText("Snooze")
         snooze:SetScript("OnClick", function() ST:StartBreakReminder(true) end)
