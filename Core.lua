@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.7.1"
+ST.VERSION = "2.8.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -45,6 +45,7 @@ local DEFAULTS = {
     locations = { bookmarks = {} },
     breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
     logging = { autoStart = false, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
+    calculator = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 240, projY = -120 },
     timer = {
         remaining = 0,
         total = 0,
@@ -162,6 +163,7 @@ ST.shopItems = {}
 ST.shopProjected = false
 ST.locationBookmarks = {}
 ST.loggingProjected = false
+ST.calculatorProjected = false
 ST.breakTimer = { interval = 60, snooze = 5, remaining = 0, running = false, due = false, anchor = 0 }
 
 local function CopyDefaults(src, dest)
@@ -420,6 +422,10 @@ function ST:SaveDB()
     local logPoint, logRel, logX, logY = SnapshotPoint(self.loggingProjectedFrame, db.logging)
     db.logging.projPoint, db.logging.projRelativePoint = logPoint, logRel
     db.logging.projX, db.logging.projY = logX, logY
+    db.calculator.projected = self.calculatorProjected
+    local calcPoint, calcRel, calcX, calcY = SnapshotPoint(self.calculatorProjectedFrame, db.calculator)
+    db.calculator.projPoint, db.calculator.projRelativePoint = calcPoint, calcRel
+    db.calculator.projX, db.calculator.projY = calcX, calcY
 
     db.timer.remaining = self.timer.remaining
     db.timer.total = self.timer.total
@@ -699,6 +705,7 @@ function ST:LoadState()
     self:LoadBreakState(db.breakReminder)
     self:UpdateLoggingDisplay()
     if db.logging.projected then self:ShowLoggingProjected(true, db.logging) end
+    if db.calculator.projected then self:ShowCalculatorProjected(true, db.calculator) end
 end
 
 function ST:IsBusy()
