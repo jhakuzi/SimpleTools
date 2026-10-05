@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.0 — Calculator
+
+- Added a Calc tab with typed arithmetic, a keypad, and the last ten calculations to click and reuse.
+- Added a draggable screen calculator sharing the tab's expression and result.
+- Arithmetic supports decimals, negative numbers, parentheses, and normal operator precedence without executing Lua.
+- Overlay visibility and position persist through reloads; history stays in the current session.
+- Adjusted compact tab spacing to fit all nine tabs at the minimum window width.
+
 ## 2.7.1 — Combat logging
 
 - Added a Logs tab with combat logging status and Start/Stop controls.

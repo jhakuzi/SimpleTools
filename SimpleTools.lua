@@ -12,6 +12,7 @@ local TABS = {
     { key = "locations", label = "Locations", width = 76 },
     { key = "break",   label = "Break",    width = 56 },
     { key = "logs",    label = "Logs",     width = 50 },
+    { key = "calculator", label = "Calc",  width = 50 },
 }
 
 function ST:CreateMainFrame()
@@ -82,6 +83,7 @@ function ST:CreateMainFrame()
     self.tabFrames[6] = self:CreateLocationsUI(self.contentFrame)
     self.tabFrames[7] = self:CreateBreakUI(self.contentFrame)
     self.tabFrames[8] = self:CreateLoggingUI(self.contentFrame)
+    self.tabFrames[9] = self:CreateCalculatorUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleXPFrame = self.tabFrames[2]
@@ -121,14 +123,14 @@ function ST:LayoutTabButtons()
         if total > inner then
             usable = inner
         end
-        local textWidth = total - math.max(0, n - 1) * gap
-        local scale = 1
-        if textWidth > 0 then
-            scale = (usable - math.max(0, n - 1) * gap) / textWidth
-        end
+        local extraWidth = total - minTotal
+        local spare = usable - minTotal
         local widths, used = {}, 0
         for i = 1, n do
-            local w = math.max(minW, math.floor(natural[i] * scale + 0.5))
+            local w = natural[i]
+            if total > inner then
+                w = minW + math.floor(spare * math.max(0, natural[i] - minW) / math.max(1, extraWidth))
+            end
             widths[i] = w
             used = used + w
         end
