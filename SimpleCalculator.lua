@@ -86,7 +86,7 @@ function ST:UpdateCalculatorViews()
         if view.input:GetText() ~= self.calculatorExpression then
             view.input:SetText(self.calculatorExpression)
         end
-        view.result:SetText(self.calculatorResult or "Enter an expression, then press Enter or =.")
+        view.result:SetText(self.calculatorResult or "")
     end
     if not self.calculatorHistoryRows then return end
     for i, row in ipairs(self.calculatorHistoryRows) do
@@ -96,6 +96,22 @@ function ST:UpdateCalculatorViews()
         if entry then row.text:SetText(entry.expression .. " = " .. entry.result) end
     end
     self.calculatorHistoryChild:SetHeight(math.max(20, #self.calculatorHistory * 20))
+    self.calculatorHistoryClear:SetEnabled(#self.calculatorHistory > 0)
+end
+
+function ST:RemoveCalculatorHistory(entry)
+    for index, item in ipairs(self.calculatorHistory) do
+        if item == entry then
+            table.remove(self.calculatorHistory, index)
+            self:UpdateCalculatorViews()
+            return
+        end
+    end
+end
+
+function ST:ClearCalculatorHistory()
+    self.calculatorHistory = {}
+    self:UpdateCalculatorViews()
 end
 
 function ST:EvaluateCalculator()
@@ -200,10 +216,20 @@ function ST:CreateCalculatorUI(parent)
     self:CreateCalculatorControls(frame, 8, -2, 192)
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     title:SetPoint("TOPLEFT", 216, -5)
-    title:SetText("History · click to reuse")
-    local scroll = CreateFrame("ScrollFrame", nil, frame)
-    scroll:SetPoint("TOPLEFT", 212, -24)
-    scroll:SetPoint("BOTTOMRIGHT", -8, 38)
+    title:SetText("History")
+    local clear = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    clear:SetSize(60, 20)
+    clear:SetPoint("TOPRIGHT", -8, -2)
+    clear:SetText("Clear")
+    clear:SetScript("OnClick", function() ST:ClearCalculatorHistory() end)
+    self.calculatorHistoryClear = clear
+    local box = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    box:SetPoint("TOPLEFT", 212, -26)
+    box:SetPoint("BOTTOMRIGHT", -8, 38)
+    self:ApplyOverlayBackdrop(box)
+    local scroll = CreateFrame("ScrollFrame", nil, box)
+    scroll:SetPoint("TOPLEFT", 6, -4)
+    scroll:SetPoint("BOTTOMRIGHT", -6, 4)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(selfScroll, delta)
         selfScroll:SetVerticalScroll(math.max(0, math.min(selfScroll:GetVerticalScrollRange(), selfScroll:GetVerticalScroll() - delta * 20)))
@@ -221,9 +247,17 @@ function ST:CreateCalculatorUI(parent)
         row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
         row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         row.text:SetPoint("LEFT", 4, 0)
-        row.text:SetPoint("RIGHT", -4, 0)
+        row.text:SetPoint("RIGHT", -22, 0)
         row.text:SetJustifyH("LEFT")
         row.text:SetWordWrap(false)
+        local remove = CreateFrame("Button", nil, row)
+        remove:SetSize(16, 16)
+        remove:SetPoint("RIGHT", -2, 0)
+        local label = remove:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetPoint("CENTER")
+        label:SetText("x")
+        remove:SetScript("OnClick", function() ST:RemoveCalculatorHistory(row.entry) end)
+        row.remove = remove
         row:SetScript("OnClick", function(selfRow)
             if selfRow.entry then
                 ST.calculatorExpression = selfRow.entry.expression
