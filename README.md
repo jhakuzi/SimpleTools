@@ -14,7 +14,7 @@ World of Warcraft/_classic_beta_/Interface/AddOns/
 
 Then `/reload`.
 
-The **Calc** tab accepts arithmetic such as `(12 + 8) * 3`, or use its keypad. Press Enter or `=` to calculate, and click a history entry to reuse it. **Send to screen** opens a small draggable calculator. History keeps the last ten calculations for the current session.
+The **Calc** tab accepts arithmetic such as `(12 + 8) * 3`, or use its keypad. Press Enter or `=` to calculate; the input clears and keeps the answer. Start the next expression with `+`, `-`, `*`, or `/` to continue from that answer, or enter a number for a fresh calculation. `C` clears both input and answer. Click a history entry to reuse it. **Send to screen** opens a small draggable calculator. History keeps the last ten calculations for the current session.
 
 
 ## Commands

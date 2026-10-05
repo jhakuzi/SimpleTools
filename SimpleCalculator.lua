@@ -115,19 +115,29 @@ function ST:ClearCalculatorHistory()
 end
 
 function ST:EvaluateCalculator()
-    local value, message = self:Calculate(self.calculatorExpression)
+    local expression = strtrim(self.calculatorExpression)
+    if expression == "" and self.calculatorAnswer then return tonumber(self.calculatorAnswer) end
+    if expression:match("^[+*/%-]") and self.calculatorAnswer then
+        expression = "(" .. self.calculatorAnswer .. ")" .. expression
+    end
+    local value, message = self:Calculate(expression)
     if value == nil then
         self.calculatorResult = message
     else
         local result = string.format("%.12g", value == 0 and 0 or value)
         self.calculatorResult = "= " .. result
+        self.calculatorAnswer = result
         local last = self.calculatorHistory[1]
-        if not last or last.expression ~= self.calculatorExpression or last.result ~= result then
-            table.insert(self.calculatorHistory, 1, {expression = self.calculatorExpression, result = result})
+        if not last or last.expression ~= expression or last.result ~= result then
+            table.insert(self.calculatorHistory, 1, {expression = expression, result = result})
             if #self.calculatorHistory > 10 then table.remove(self.calculatorHistory) end
         end
+        self.calculatorExpression = ""
     end
     self:UpdateCalculatorViews()
+    if value ~= nil then
+        for _, view in ipairs(self.calculatorViews) do view.input:SetCursorPosition(0) end
+    end
     return value
 end
 
@@ -168,6 +178,7 @@ function ST:CreateCalculatorControls(parent, x, y, width)
             if key == "=" then ST:EvaluateCalculator(); return end
             if key == "C" then
                 ST.calculatorExpression, ST.calculatorResult = "", nil
+                ST.calculatorAnswer = nil
                 ST:UpdateCalculatorViews()
             elseif key == "Back" then
                 local text, cursor = input:GetText(), input:GetCursorPosition()
@@ -262,6 +273,7 @@ function ST:CreateCalculatorUI(parent)
             if selfRow.entry then
                 ST.calculatorExpression = selfRow.entry.expression
                 ST.calculatorResult = "= " .. selfRow.entry.result
+                ST.calculatorAnswer = selfRow.entry.result
                 ST:UpdateCalculatorViews()
             end
         end)
