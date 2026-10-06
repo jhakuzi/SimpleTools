@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.9.0 — Checklist
+
+- Added a separate Checklist tab with saved tasks, checkboxes, editing, and per-task deletion.
+- Checked tasks stay in place and appear dimmed and crossed out. Reset checks reuses the list without deleting tasks.
+- Added a compact, scrollable checklist overlay sharing the same tasks and controls.
+- Overlay position and visibility survive reloads. The minimum main-window height is now 240 to accommodate wrapped tabs.
+
 ## 2.8.0 — Calculator
 
 - Added a Calc tab with typed arithmetic, a keypad, and the last ten calculations to click and reuse.

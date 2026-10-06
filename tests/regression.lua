@@ -28,11 +28,11 @@ for _, name in ipairs({'ApplyMainFrameSize', 'SetPanelTitle', 'EnsurePanelClose'
     ST[name] = noop
 end
 for _, name in ipairs({'CreateTimeTab', 'CreateXPGoldTab', 'CreateSimpleGatherUI',
-    'CreateSimpleNotepadUI', 'CreateSimpleShopUI', 'CreateLocationsUI', 'CreateBreakUI', 'CreateLoggingUI', 'CreateCalculatorUI'}) do
+    'CreateSimpleNotepadUI', 'CreateSimpleShopUI', 'CreateLocationsUI', 'CreateBreakUI', 'CreateLoggingUI', 'CreateCalculatorUI', 'CreateChecklistUI'}) do
     ST[name] = function() return frame end
 end
 -- Exercise both frame construction and the real restoration path for every tab.
-for tab = 1, 9 do
+for tab = 1, 10 do
     SimpleToolsDB = {version = 2, ui = {selectedTab = tab, tabs = 'v2'}}
     ST:InitDB()
     ST:CreateMainFrame()
