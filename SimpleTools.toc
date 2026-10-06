@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Title: SimpleTools
-## Notes: Timers, trackers, shopping list, notes, bookmarks, breaks, logging, and calculator for WoW Forever.
+## Notes: Timers, trackers, shopping list, notes, bookmarks, breaks, logging, calculator, and checklist for WoW Forever.
 ## Author: Jhakuzi
-## Version: 2.8.0
+## Version: 2.9.0
 ## IconTexture: Interface\AddOns\SimpleTools\Media\icon
 ## AddonCompartmentFunc: SimpleTools_OnAddonCompartmentClick
 ## SavedVariables: SimpleToolsDB
@@ -24,3 +24,4 @@ SimpleLocations.lua
 SimpleBreak.lua
 SimpleLogging.lua
 SimpleCalculator.lua
+SimpleChecklist.lua

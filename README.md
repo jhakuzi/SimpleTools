@@ -14,6 +14,8 @@ World of Warcraft/_classic_beta_/Interface/AddOns/
 
 Then `/reload`.
 
+The **Checklist** tab saves a separate to-do list. Add tasks, tick them off, click their text to edit, or use **x** to delete. **Reset checks** unchecks everything without deleting tasks. **Send to screen** opens a compact, scrollable checklist with the same controls. Tasks, checkmarks, and overlay placement persist across reloads.
+
 The **Calc** tab accepts arithmetic such as `(12 + 8) * 3`, or use its keypad. Press Enter or `=` to calculate; the input clears and keeps the answer. Start the next expression with `+`, `-`, `*`, or `/` to continue from that answer, or enter a number for a fresh calculation. `C` clears both input and answer. Click a history entry to reuse it. **Send to screen** opens a small draggable calculator. History keeps the last ten calculations for the current session.
 
 

@@ -7,12 +7,12 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.8.0"
+ST.VERSION = "2.9.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
 ST.FRAME_MIN_W = 480
-ST.FRAME_MIN_H = 220
+ST.FRAME_MIN_H = 240
 ST.FRAME_MAX_W = 900
 ST.FRAME_MAX_H = 640
 
@@ -46,6 +46,7 @@ local DEFAULTS = {
     breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
     logging = { autoStart = false, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
     calculator = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 240, projY = -120 },
+    checklist = { items = {}, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 260, projY = -180 },
     timer = {
         remaining = 0,
         total = 0,
@@ -164,6 +165,8 @@ ST.shopProjected = false
 ST.locationBookmarks = {}
 ST.loggingProjected = false
 ST.calculatorProjected = false
+ST.checklistItems = {}
+ST.checklistProjected = false
 ST.breakTimer = { interval = 60, snooze = 5, remaining = 0, running = false, due = false, anchor = 0 }
 
 local function CopyDefaults(src, dest)
@@ -426,6 +429,11 @@ function ST:SaveDB()
     local calcPoint, calcRel, calcX, calcY = SnapshotPoint(self.calculatorProjectedFrame, db.calculator)
     db.calculator.projPoint, db.calculator.projRelativePoint = calcPoint, calcRel
     db.calculator.projX, db.calculator.projY = calcX, calcY
+    db.checklist.items = self:CopyChecklistItems(self.checklistItems)
+    db.checklist.projected = self.checklistProjected
+    local taskPoint, taskRel, taskX, taskY = SnapshotPoint(self.checklistProjectedFrame, db.checklist)
+    db.checklist.projPoint, db.checklist.projRelativePoint = taskPoint, taskRel
+    db.checklist.projX, db.checklist.projY = taskX, taskY
 
     db.timer.remaining = self.timer.remaining
     db.timer.total = self.timer.total
@@ -545,6 +553,8 @@ function ST:LoadState()
     self.locationBookmarks = self:CopyLocationBookmarks(db.locations.bookmarks)
     self.selectedLocation = nil
     self:RefreshLocationList()
+    self.checklistItems = self:CopyChecklistItems(db.checklist.items)
+    self:RefreshChecklistViews()
 
     self.timer.remaining = db.timer.remaining or 0
     self.timer.total = db.timer.total or 0
@@ -706,6 +716,7 @@ function ST:LoadState()
     self:UpdateLoggingDisplay()
     if db.logging.projected then self:ShowLoggingProjected(true, db.logging) end
     if db.calculator.projected then self:ShowCalculatorProjected(true, db.calculator) end
+    if db.checklist.projected then self:ShowChecklistProjected(true, db.checklist) end
 end
 
 function ST:IsBusy()
