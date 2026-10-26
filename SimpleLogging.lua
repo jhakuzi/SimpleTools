@@ -4,7 +4,7 @@ local CreateFrame = CreateFrame
 function ST:GetLoggingState()
     if type(LoggingCombat) ~= "function" then return nil end
     local ok, enabled = pcall(LoggingCombat)
-    if ok and type(enabled) == "boolean" then return enabled end
+    if ok and not self:IsSecret(enabled) and type(enabled) == "boolean" then return enabled end
     return nil
 end
 

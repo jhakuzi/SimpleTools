@@ -274,7 +274,7 @@ function ST:OnGatherLoot(text)
     if not self.gather.running then
         return
     end
-    if type(text) ~= "string" then
+    if self:IsSecret(text) or type(text) ~= "string" then
         return
     end
     local link = text:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)")

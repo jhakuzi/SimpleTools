@@ -217,7 +217,7 @@ local function CopyShopItems(src)
 end
 
 function ST:IsSecret(value)
-    return value ~= nil and issecretvalue(value)
+    return issecretvalue(value)
 end
 
 -- Returns a usable number, or nil if the value is secret / missing.

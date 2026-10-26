@@ -1,6 +1,7 @@
-## Interface: 16001
+## Interface: 120107
+## Interface-Camelot: 16001
 ## Title: SimpleTools
-## Notes: Timers, trackers, shopping list, notes, bookmarks, breaks, logging, calculator, and checklist for WoW Forever.
+## Notes: Timers, trackers, shopping list, notes, bookmarks, breaks, logging, calculator, and checklist for Midnight and WoW Forever.
 ## Author: Jhakuzi
 ## Version: 2.9.0
 ## IconTexture: Interface\AddOns\SimpleTools\Media\icon
@@ -8,7 +9,6 @@
 ## SavedVariables: SimpleToolsDB
 ## Category: Miscellaneous
 ## DefaultState: enabled
-## AllowLoadGameType: camelot
 
 Core.lua
 SimpleTools.lua

@@ -25,13 +25,17 @@ end
 function ST:GetCurrentLocation()
     if not C_Map or not C_Map.GetBestMapForUnit or not C_Map.GetPlayerMapPosition then return nil end
     local mapID = C_Map.GetBestMapForUnit("player")
+    if self:IsSecret(mapID) then return nil end
     if not mapID then return nil end
     local position = C_Map.GetPlayerMapPosition(mapID, "player")
     if not position then return nil end
     local x, y = position:GetXY()
+    if self:IsSecret(x) or self:IsSecret(y) then return nil end
     if not ValidPosition(mapID, x, y) then return nil end
     local info = C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
-    return { mapID = mapID, x = x, y = y, zone = info and info.name or "Unknown zone" }
+    local name = info and info.name
+    if self:IsSecret(name) or type(name) ~= "string" then name = "Unknown zone" end
+    return { mapID = mapID, x = x, y = y, zone = name }
 end
 
 function ST:SaveCurrentLocation(name)
