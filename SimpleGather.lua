@@ -52,6 +52,7 @@ local function SpellName(spellID)
 end
 
 function ST:GatherSpellKind(spellID)
+    if self:IsSecret(spellID) or type(spellID) ~= "number" then return nil, true end
     local kind = SPELL_KIND[spellID]
     if kind then
         return kind
@@ -64,12 +65,13 @@ function ST:GatherSpellKind(spellID)
         }
         for id, k in pairs(SPELL_KIND) do
             local n = SpellName(id)
-            if n then
+            if n and not self:IsSecret(n) then
                 nameKind[n] = k
             end
         end
     end
     local n = SpellName(spellID)
+    if self:IsSecret(n) then return nil, true end
     return n and nameKind[n]
 end
 
@@ -82,6 +84,7 @@ function ST:ClassifyGatherItem(item)
     else
         itemID = tonumber(tostring(item):match("item:(%d+)"))
     end
+    if self:IsSecret(itemID) or self:IsSecret(classID) or self:IsSecret(subclassID) then return nil, nil, true end
     if itemID and FALLBACK_KIND[itemID] then
         return FALLBACK_KIND[itemID], itemID
     end
@@ -225,6 +228,7 @@ function ST:ResetGatherTracker()
     self.gather.elapsed = 0
     self.gather.anchor = 0
     self.gather.nodes = 0
+    self.gather.partial = false
     self.gather.herbNodes = 0
     self.gather.oreNodes = 0
     self.gather.skinNodes = 0
@@ -247,14 +251,24 @@ function ST:GatherElapsed()
     return elapsed
 end
 
+function ST:MarkGatherPartial()
+    if not self.gather.partial then
+        self.gather.partial = true
+        self:UpdateGatherTracker()
+        self:ScheduleSave()
+    end
+end
+
 function ST:OnGatherSpell(unit, _, spellID)
     if not self.gather.running then
         return
     end
+    if self:IsSecret(unit) then self:MarkGatherPartial(); return end
     if unit ~= "player" then
         return
     end
-    local kind = self:GatherSpellKind(spellID)
+    local kind, unavailable = self:GatherSpellKind(spellID)
+    if unavailable then self:MarkGatherPartial(); return end
     if not kind then
         return
     end
@@ -274,14 +288,16 @@ function ST:OnGatherLoot(text)
     if not self.gather.running then
         return
     end
-    if self:IsSecret(text) or type(text) ~= "string" then
+    if self:IsSecret(text) then self:MarkGatherPartial(); return end
+    if type(text) ~= "string" then
         return
     end
     local link = text:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)")
     if not link then
         return
     end
-    local kind, itemID = self:ClassifyGatherItem(link)
+    local kind, itemID, unavailable = self:ClassifyGatherItem(link)
+    if unavailable then self:MarkGatherPartial(); return end
     if not kind or not itemID then
         return
     end
@@ -338,7 +354,7 @@ function ST:UpdateGatherTracker()
 
     local elapsed = self:GatherElapsed()
     local nodes = self.gather.nodes or 0
-    self.gatherNodesDisplay:SetText(tostring(nodes) .. (nodes == 1 and " node" or " nodes"))
+    self.gatherNodesDisplay:SetText(tostring(nodes) .. (nodes == 1 and " node" or " nodes") .. (self.gather.partial and " (partial)" or ""))
 
     local elapsedText = "Elapsed " .. self:FormatElapsedTime(elapsed)
     self.gatherElapsedDisplay:SetText(elapsedText)
@@ -363,7 +379,7 @@ function ST:UpdateGatherTracker()
     if not self.gatherProjectedFrame then
         return
     end
-    self.gatherProjNodes:SetText(tostring(nodes) .. " nodes")
+    self.gatherProjNodes:SetText(tostring(nodes) .. " nodes" .. (self.gather.partial and " (partial)" or ""))
     self.gatherProjRate:SetText(rateText)
     self.gatherProjKinds:SetText(kinds)
     self.gatherProjElapsed:SetText(elapsedText)

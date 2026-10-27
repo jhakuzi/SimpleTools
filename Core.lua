@@ -486,6 +486,7 @@ function ST:SaveDB()
     db.gather.running = self.gather.running
     db.gather.elapsed = self.gather.elapsed
     db.gather.nodes = self.gather.nodes
+    db.gather.partial = self.gather.partial == true
     db.gather.herbNodes = self.gather.herbNodes
     db.gather.oreNodes = self.gather.oreNodes
     db.gather.skinNodes = self.gather.skinNodes
@@ -648,6 +649,7 @@ function ST:LoadState()
     self.gather.running = db.gather.running or false
     self.gather.elapsed = db.gather.elapsed or 0
     self.gather.nodes = db.gather.nodes or 0
+    self.gather.partial = db.gather.partial == true
     self.gather.herbNodes = db.gather.herbNodes or 0
     self.gather.oreNodes = db.gather.oreNodes or 0
     self.gather.skinNodes = db.gather.skinNodes or 0

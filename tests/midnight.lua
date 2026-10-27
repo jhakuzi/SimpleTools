@@ -28,8 +28,17 @@ assert(ST:GetCurrentLocation() == nil)
 C_Map.GetPlayerMapPosition = function() return { GetXY = function() return 0.5, 0.5 end } end
 C_Map.GetMapInfo = function() return {name = secret} end
 assert(ST:GetCurrentLocation().zone == 'Unknown zone')
+C_Timer.After = function(_, callback) callback() end
 ST.gather.running = true
+ST.gather.partial = false
 ST:OnGatherLoot(secret)
+assert(ST.gather.partial and ST.db.gather.partial)
+ST.gather.partial = false
+ST:OnGatherSpell("player", nil, secret)
+assert(ST.gather.partial)
+C_Item = {GetItemInfoInstant = function() return secret end}
+local _, _, unavailable = ST:ClassifyGatherItem("item:765")
+assert(unavailable)
 LoggingCombat = function() return secret end
 assert(ST:GetLoggingState() == nil)
 ST.IsSecret = original
