@@ -46,6 +46,7 @@ local DEFAULTS = {
     breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
     logging = { autoStart = false, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
     calculator = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 240, projY = -120 },
+    history = {},
     checklist = { items = {}, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 260, projY = -180 },
     timer = {
         remaining = 0,
@@ -463,6 +464,7 @@ function ST:SaveDB()
     db.xp.startValue = self.xp.startValue
     db.xp.maxAtStart = self.xp.maxAtStart
     db.xp.gained = self.xp.gained
+    db.xp.partial = self.xp.partial == true
     db.xp.kill = self.xp.kill or 0
     db.xp.quest = self.xp.quest or 0
     db.xp.projected = self.xp.projected
@@ -476,6 +478,7 @@ function ST:SaveDB()
     db.gold.elapsed = self.gold.elapsed
     db.gold.startValue = self.gold.startValue
     db.gold.gained = self.gold.gained
+    db.gold.partial = self.gold.partial == true
     db.gold.projected = self.gold.projected
     db.gold.projPoint = goldPoint
     db.gold.projRelativePoint = goldRel
@@ -611,6 +614,7 @@ function ST:LoadState()
     self.xp.startValue = db.xp.startValue or 0
     self.xp.maxAtStart = db.xp.maxAtStart or 1
     self.xp.gained = db.xp.gained or 0
+    self.xp.partial = db.xp.partial == true
     self.xp.kill = db.xp.kill or 0
     self.xp.quest = db.xp.quest or 0
     if self.xp.running then
@@ -633,6 +637,7 @@ function ST:LoadState()
     self.gold.elapsed = db.gold.elapsed or 0
     self.gold.startValue = db.gold.startValue or 0
     self.gold.gained = db.gold.gained or 0
+    self.gold.partial = db.gold.partial == true
     if self.gold.running then
         self.gold.anchor = GetTime()
         if self.goldStartPauseButton then
@@ -715,6 +720,7 @@ function ST:LoadState()
         self:SelectTab(db.ui.selectedTab)
     end
     self:LoadBreakState(db.breakReminder)
+    self:RefreshHistory()
     self:UpdateLoggingDisplay()
     if db.logging.projected then self:ShowLoggingProjected(true, db.logging) end
     if db.calculator.projected then self:ShowCalculatorProjected(true, db.calculator) end

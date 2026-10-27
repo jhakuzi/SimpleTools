@@ -64,16 +64,16 @@ for line in io.lines('SimpleTools.toc') do
     local file=line:match('^%s*(.-)%s*$')
     if file:match('%.lua$') then assert(loadfile(file))('SimpleTools',ST); count=count+1 end
 end
-equal(count,15)
+equal(count,16)
 -- Build the actual main frame and the two new panels; stub only old tab constructors.
-for _,name in ipairs({'CreateTimeTab','CreateXPGoldTab','CreateSimpleGatherUI','CreateSimpleNotepadUI','CreateSimpleShopUI','CreateLoggingUI','CreateCalculatorUI','CreateChecklistUI'}) do
+for _,name in ipairs({'CreateTimeTab','CreateXPGoldTab','CreateSimpleGatherUI','CreateSimpleNotepadUI','CreateSimpleShopUI','CreateLoggingUI','CreateCalculatorUI','CreateChecklistUI','CreateHistoryUI'}) do
     ST[name]=function() return widget() end
 end
 ST:InitDB()
 ST.db.options.chat=false
 ST:CreateMainFrame()
 ST:LoadState()
-equal(#ST.tabFrames,10)
+equal(#ST.tabFrames,11)
 equal(ST.locationMapButton.enabled,false)
 equal(ST.breakSnoozeButton.enabled,false)
 -- Tabs fit on one row even at the minimum frame width.

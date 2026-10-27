@@ -72,6 +72,8 @@ function ST:OnMoneyUpdate()
     end
     local currentGold = self:PlainNumber(GetMoney())
     if not currentGold then
+        self.gold.partial = true
+        self:ScheduleSave()
         return
     end
     local diff = currentGold - self.gold.startValue
@@ -97,6 +99,9 @@ end
 
 function ST:ResetGoldTracker()
     local wasRunning = self.gold.running
+    if wasRunning then self:OnMoneyUpdate() end
+    self:RecordTrackerSession("gold", self.gold, self:GoldElapsed())
+    self.gold.partial = false
     self.gold.running = false
     self.gold.elapsed = 0
     self.gold.anchor = 0

@@ -103,6 +103,8 @@ end
 
 function ST:ResetXPTracker()
     local wasRunning = self.xp.running
+    self:RecordTrackerSession("xp", self.xp, self:XPElapsed())
+    self.xp.partial = false
     self.xp.running = false
     self.xp.elapsed = 0
     self.xp.anchor = 0
@@ -144,6 +146,8 @@ function ST:OnXPUpdate()
     end
     local currentXP, maxXP = self:GetPlayerXP()
     if not currentXP or not maxXP then
+        self.xp.partial = true
+        self:ScheduleSave()
         return
     end
 

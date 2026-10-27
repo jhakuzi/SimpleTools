@@ -14,6 +14,7 @@ local TABS = {
     { key = "logs",    label = "Logs",     width = 50 },
     { key = "calculator", label = "Calc",  width = 50 },
     { key = "checklist", label = "Checklist", width = 76 },
+    { key = "history", label = "History", width = 62 },
 }
 
 function ST:CreateMainFrame()
@@ -86,6 +87,7 @@ function ST:CreateMainFrame()
     self.tabFrames[8] = self:CreateLoggingUI(self.contentFrame)
     self.tabFrames[9] = self:CreateCalculatorUI(self.contentFrame)
     self.tabFrames[10] = self:CreateChecklistUI(self.contentFrame)
+    self.tabFrames[11] = self:CreateHistoryUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleXPFrame = self.tabFrames[2]

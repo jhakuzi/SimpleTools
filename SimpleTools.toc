@@ -25,3 +25,4 @@ SimpleBreak.lua
 SimpleLogging.lua
 SimpleCalculator.lua
 SimpleChecklist.lua
+SimpleHistory.lua

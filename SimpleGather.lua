@@ -224,6 +224,7 @@ end
 
 function ST:ResetGatherTracker()
     local wasRunning = self.gather.running
+    self:RecordTrackerSession("gather", self.gather, self:GatherElapsed())
     self.gather.running = false
     self.gather.elapsed = 0
     self.gather.anchor = 0

@@ -32,3 +32,7 @@ The **Calc** tab accepts arithmetic such as `(12 + 8) * 3`, or use its keypad. P
 | `/tools` | Open or close |
 
 `/simpletools` and `/st` do the same as `/tools`.
+
+## Session history
+
+The History tab lists completed XP, Gold, and Gather tracker sessions. Resetting a tracker saves its current session; pausing keeps it available to resume. Select a row to inspect details, use its x to delete it, or Clear history to remove all sessions. The newest 100 sessions are retained. Sessions marked partial have incomplete data because a required game value was unavailable.
