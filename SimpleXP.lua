@@ -139,7 +139,7 @@ function ST:ResetXPTracker()
 end
 
 function ST:OnXPUpdate()
-    if not self.xp.running then
+    if not self.xp.running or not self:TrackerReady() then
         return
     end
     local currentXP, maxXP = self:GetPlayerXP()

@@ -58,14 +58,24 @@ function ST:ToggleCombatLogging()
 end
 
 function ST:AutoStartCombatLogging()
-    if not self.db or not self.db.logging.autoStart or type(IsInInstance) ~= "function" then return false end
+    if not self.db or not self.db.logging.autoStart or type(IsInInstance) ~= "function" then
+        return false
+    end
     local inInstance, instanceType = IsInInstance()
-    if not inInstance or (instanceType ~= "party" and instanceType ~= "raid") then return false end
+    local inside = inInstance and (instanceType == "party" or instanceType == "raid")
+    local entered = inside and not self.loggingInside
+    self.loggingInside = inside and true or false
+    if not entered then
+        return false
+    end
     return self:SetCombatLogging(true)
 end
 
 function ST:ToggleAutoCombatLogging()
     self.db.logging.autoStart = not self.db.logging.autoStart
+    if not self.db.logging.autoStart then
+        self.loggingInside = false
+    end
     self:SaveDB()
     self:UpdateLoggingDisplay()
     if self.db.logging.autoStart then self:AutoStartCombatLogging() end

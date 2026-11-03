@@ -67,7 +67,7 @@ function ST:StartGoldTracker()
 end
 
 function ST:OnMoneyUpdate()
-    if not self.gold.running then
+    if not self.gold.running or not self:TrackerReady() then
         return
     end
     local currentGold = self:PlainNumber(GetMoney())

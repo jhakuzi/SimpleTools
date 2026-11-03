@@ -1,28 +1,46 @@
 # SimpleTools
 
-Lightweight QoL for WoW Forever.
-
-Timer, stopwatch, reminder, XP and gold per hour, gathering, notepad, and a shopping list. Additionally you can set up a break timer and save/share your current location on the map and in a list or start and stop combat logging. Any of them can be sent to the screen.
+Lightweight quality-of-life addon for WoW Forever (Camelot, interface 16001). Version 2.10.0.
 
 ## Install
 
-Copy the `SimpleTools` folder to:
+Copy the `SimpleTools` folder into the Forever client's AddOns directory. On the beta client that is:
 
 ```
 World of Warcraft/_classic_beta_/Interface/AddOns/
 ```
 
-Then `/reload`.
+Then `/reload`, or enable it from the AddOns button at character select. The live Forever folder is the install Battle.net launches, still under `Interface/AddOns`.
 
-The **Checklist** tab saves a separate to-do list. Add tasks, tick them off, click their text to edit, or use **x** to delete. **Reset checks** unchecks everything without deleting tasks. **Send to screen** opens a compact, scrollable checklist with the same controls. Tasks, checkmarks, and overlay placement persist across reloads.
+## Tools
 
-The **Calc** tab accepts arithmetic such as `(12 + 8) * 3`, or use its keypad. Press Enter or `=` to calculate; the input clears and keeps the answer. Start the next expression with `+`, `-`, `*`, or `/` to continue from that answer, or enter a number for a fresh calculation. `C` clears both input and answer. Click a history entry to reuse it. **Send to screen** opens a small draggable calculator. History keeps the last ten calculations for the current session.
+The window is four groups. Each group has its own tools, and any of them can be sent to the screen.
 
+| Group | Tools |
+| --- | --- |
+| Time | Countdown, stopwatch, a daily reminder, and a break timer |
+| Track | XP and gold per hour, gathering nodes |
+| Lists | Notepad, shopping list, checklist, location bookmarks |
+| Utility | Calculator, combat logging, options |
+
+XP, gold, and gathering sessions are saved for the character who earned them. Notepad, checklist, and locations stay shared across characters until you switch them under Utility → Options. The shopping list stays shared. The first character to enter the world after updating keeps the old shared tracker session.
 
 ## Commands
 
-| Command | action |
+| Command | Action |
 | --- | --- |
 | `/tools` | Open or close |
+| `/tools options` | Open options |
+| `/tools sound` | Toggle alert sounds |
+| `/tools chat` | Toggle chat messages |
+| `/tools resetpos` | Reset the window position and size |
 
 `/simpletools` and `/st` do the same as `/tools`.
+
+## Notes
+
+- Checklist tasks can be edited, checked, deleted, or reset without deleting the list. The screen overlay uses the same tasks.
+- The calculator accepts `(12 + 8) * 3` and never runs the expression as Lua. History is the last ten results for this session.
+- Locations can be shown on the map or linked into chat as `Name — Zone (x.x, y.y)`.
+- Auto logging starts only as you enter a dungeon or raid. Leaving the overlay, or the next loading screen inside that instance, does not stop or restart it.
+- Shop: shift-click an item while the Shop tool is open, or search the reagent list. Shift-click a row to paste it into auction search.
