@@ -42,5 +42,6 @@ XP, gold, and gathering sessions are saved for the character who earned them. No
 - Checklist tasks can be edited, checked, deleted, or reset without deleting the list. The screen overlay uses the same tasks.
 - The calculator accepts `(12 + 8) * 3` and never runs the expression as Lua. History is the last ten results for this session.
 - Locations can be shown on the map or linked into chat as `Name — Zone (x.x, y.y)`.
+- A gold session ignores a 0 copper reading during login, /reload, and loading screens. Spending down to exactly 0 copper while you are playing still counts.
 - Auto logging starts only as you enter a dungeon or raid. Leaving the overlay, or the next loading screen inside that instance, does not stop or restart it.
-- Shop: shift-click an item while the Shop tool is open, or search the reagent list. Shift-click a row to paste it into auction search.
+- Shop: shift-click an item while the Shop tool is open, or search the reagent list. Shift-click a row to paste it into auction search. The Find box filters the open fallback menu immediately. A native menu uses the same filter the next time it opens.

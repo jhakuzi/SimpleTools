@@ -52,9 +52,46 @@ function ST:ToggleGoldTracker()
     end
 end
 
+function ST:RawMoney()
+    return self:PlainNumber(GetMoney())
+end
+
+-- A zero while suppressZero is set came from a loading screen, not a purchase.
+-- A positive reading ends that window. A later zero is a real empty purse.
+function ST:ReadableMoney()
+    local money = self:RawMoney()
+    if money == nil then
+        return nil
+    end
+    if money == 0 and self.gold.suppressZero then
+        return nil
+    end
+    if money > 0 then
+        self.gold.suppressZero = false
+    end
+    return money
+end
+
+function ST:ApplyMoneyValue(currentGold)
+    if not self.gold or not self.gold.running or not self:TrackerReady() then
+        return
+    end
+    if type(currentGold) ~= "number" then
+        return
+    end
+    local diff = currentGold - (self.gold.startValue or 0)
+    self.gold.startValue = currentGold
+    if diff ~= 0 then
+        self.gold.gained = (self.gold.gained or 0) + diff
+        if self.UpdateGoldTracker then
+            self:UpdateGoldTracker()
+        end
+    end
+end
+
 function ST:StartGoldTracker()
-    local money = self:PlainNumber(GetMoney())
-    if not money then
+    local money = self:ReadableMoney()
+    if money == nil then
         self:Print("Gold value is unavailable.")
         return
     end
@@ -70,16 +107,11 @@ function ST:OnMoneyUpdate()
     if not self.gold.running or not self:TrackerReady() then
         return
     end
-    local currentGold = self:PlainNumber(GetMoney())
-    if not currentGold then
+    local currentGold = self:ReadableMoney()
+    if currentGold == nil then
         return
     end
-    local diff = currentGold - self.gold.startValue
-    if diff ~= 0 then
-        self.gold.gained = self.gold.gained + diff
-        self.gold.startValue = currentGold
-        self:UpdateGoldTracker()
-    end
+    self:ApplyMoneyValue(currentGold)
 end
 
 function ST:PauseGoldTracker()

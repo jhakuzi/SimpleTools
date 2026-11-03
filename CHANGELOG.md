@@ -3,7 +3,7 @@
 ## 2.10.0 — Forever release pass
 
 - XP, gold, and gather sessions are stored per character. The first character to log in after this update keeps the old account session.
-- Gold is no longer rebased from `GetMoney()` on every loading screen, so a not-ready `0` cannot book your whole purse as profit.
+- Gold ignores a temporary 0 from login, /reload, or a loading screen. Spending the last copper still counts, and a loading-screen read cannot be applied twice.
 - Combat logging auto-start runs only when you enter a dungeon or raid, not on every loading screen inside one.
 - The window uses four groups (Time, Track, Lists, Utility) instead of a wrapping row of tabs.
 - Options for alert sounds, chat messages, and whether notepad, checklist, and locations are shared or per character. `/tools sound` and `/tools chat` toggle those. `/tools options` opens the page.

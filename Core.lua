@@ -354,28 +354,76 @@ function ST:BindCharacter()
     end
 end
 
-function ST:ReconcileGold()
-    if not self.gold or not self.gold.running or type(GetMoney) ~= "function" then
+function ST:BeginGoldLoad()
+    if not self.gold then
         return
     end
-    local money = self:PlainNumber(GetMoney())
-    -- Zero during a loading screen is "not ready", not an empty purse.
-    if money and money > 0 then
+    self.gold.suppressZero = true
+    self.gold.zeroConfirm = nil
+    self.goldReconcileTries = 0
+    self.goldLoadEpoch = (self.goldLoadEpoch or 0) + 1
+end
+
+function ST:AcceptSettledGold()
+    local epoch = self.goldLoadEpoch
+    local function finish()
+        if self.goldLoadEpoch ~= epoch or not self.gold or not self.gold.suppressZero then
+            return
+        end
+        local money = self.RawMoney and self:RawMoney() or nil
+        if money == nil then
+            return
+        end
+        if money > 0 then
+            self.gold.suppressZero = false
+            self.gold.zeroConfirm = nil
+            self:ApplyMoneyValue(money)
+            return
+        end
+        if not self.gold.zeroConfirm then
+            self.gold.zeroConfirm = true
+            if C_Timer and C_Timer.After then
+                C_Timer.After(0.5, finish)
+                return
+            end
+        end
+        self.gold.suppressZero = false
+        self.gold.zeroConfirm = nil
+        self:ApplyMoneyValue(0)
+    end
+    finish()
+end
+
+function ST:ReconcileGold()
+    if not self.gold or not self.gold.running or not self.ReadableMoney then
+        return
+    end
+    local epoch = self.goldLoadEpoch
+    local money = self:ReadableMoney()
+    if money ~= nil then
         self.goldReconcileTries = 0
-        self:OnMoneyUpdate()
+        self:ApplyMoneyValue(money)
+        return
+    end
+    if not self.gold.suppressZero then
         return
     end
     self.goldReconcileTries = (self.goldReconcileTries or 0) + 1
     if self.goldReconcileTries > 3 or not (C_Timer and C_Timer.After) then
+        self:AcceptSettledGold()
         return
     end
     C_Timer.After(1, function()
+        if self.goldLoadEpoch ~= epoch or not self.gold.suppressZero then
+            return
+        end
         self:ReconcileGold()
     end)
 end
 
 function ST:OnPlayerEnteringWorld()
     self:BindCharacter()
+    self:BeginGoldLoad()
     self:ReconcileGold()
     if self.AutoStartCombatLogging then
         self:AutoStartCombatLogging()

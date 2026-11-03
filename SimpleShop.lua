@@ -36,6 +36,19 @@ function ST:ShopCatalogGroups(prof)
     return groups
 end
 
+function ST:OnShopSearchChanged(text)
+    self.shopSearchText = text or ""
+    self:RefreshShopProfMenu()
+end
+
+function ST:RefreshShopProfMenu()
+    -- The fallback list can be rebuilt in place. A native context menu cannot;
+    -- the next open reads the current search text.
+    if self.shopProfOpen then
+        self:ShowShopProfMenu(self.shopProfOpen, self.shopProfAnchor)
+    end
+end
+
 function ST:ParseItemLink(link)
     if type(link) ~= "string" or link == "" then
         return nil
@@ -561,10 +574,7 @@ function ST:CreateSimpleShopUI(parent)
         if userInput == false then
             return
         end
-        ST.shopSearchText = selfBox:GetText()
-        if ST.shopProfOpen then
-            ST:ShowShopProfMenu(ST.shopProfOpen, ST.shopProfAnchor)
-        end
+        ST:OnShopSearchChanged(selfBox:GetText())
     end)
 
     self.shopProfButtons = {}
