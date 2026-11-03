@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.10.0 — Forever release pass
+
+- XP, gold, and gather sessions are stored per character. The first character to log in after this update keeps the old account session.
+- Gold ignores a temporary 0 from login, /reload, or a loading screen. Spending the last copper still counts, and a loading-screen read cannot be applied twice.
+- Combat logging auto-start runs only when you enter a dungeon or raid, not on every loading screen inside one.
+- The window uses four groups (Time, Track, Lists, Utility) instead of a wrapping row of tabs.
+- Options for alert sounds, chat messages, and whether notepad, checklist, and locations are shared or per character. `/tools sound` and `/tools chat` toggle those. `/tools options` opens the page.
+- Locations can link `Name — Zone (x, y)` into chat.
+- Reminder and break alerts take a custom message.
+- Gathering loot counts only your own loot lines. Nodes per hour holds its rate the same way XP and gold do.
+- Reagent catalog lives in `ShopCatalog.lua`, with a Find box on the Shop tab. Shift-click capture no longer swallows clicks while the quantity box is open, and it is installed only when Shop is opened.
+- Shop list rows in the window and on the overlay are built by one function.
+
 ## 2.9.0 — Checklist
 
 - Added a separate Checklist tab with saved tasks, checkboxes, editing, and per-task deletion.

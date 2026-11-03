@@ -28,7 +28,7 @@ for _, name in ipairs({'ApplyMainFrameSize', 'SetPanelTitle', 'EnsurePanelClose'
     ST[name] = noop
 end
 for _, name in ipairs({'CreateTimeTab', 'CreateXPGoldTab', 'CreateSimpleGatherUI',
-    'CreateSimpleNotepadUI', 'CreateSimpleShopUI', 'CreateLocationsUI', 'CreateBreakUI', 'CreateLoggingUI', 'CreateCalculatorUI', 'CreateChecklistUI'}) do
+    'CreateSimpleNotepadUI', 'CreateSimpleShopUI', 'CreateLocationsUI', 'CreateBreakUI', 'CreateLoggingUI', 'CreateCalculatorUI', 'CreateChecklistUI', 'CreateOptionsUI'}) do
     ST[name] = function() return frame end
 end
 -- Exercise both frame construction and the real restoration path for every tab.

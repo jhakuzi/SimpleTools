@@ -7,7 +7,7 @@ local addonName, ST = ...
 _G.SimpleTools = ST
 
 ST.ADDON_NAME = addonName
-ST.VERSION = "2.9.0"
+ST.VERSION = "2.10.0"
 ST.DB_VERSION = 2
 ST.FRAME_W = 540
 ST.FRAME_H = 240
@@ -41,9 +41,12 @@ local DEFAULTS = {
         minimap = true,
         minimapAngle = 200,
         defaultDuration = 10,
+        notepadPerCharacter = false,
+        checklistPerCharacter = false,
+        locationsPerCharacter = false,
     },
     locations = { bookmarks = {} },
-    breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false },
+    breakReminder = { interval = 60, snooze = 5, remaining = 0, running = false, due = false, message = nil },
     logging = { autoStart = false, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 0, projY = -240 },
     calculator = { projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 240, projY = -120 },
     checklist = { items = {}, projected = false, projPoint = "CENTER", projRelativePoint = "CENTER", projX = 260, projY = -180 },
@@ -66,7 +69,7 @@ local DEFAULTS = {
         projX = 180,
         projY = 60,
     },
-    reminder = { time = nil, set = false },
+    reminder = { time = nil, set = false, message = nil },
     xp = {
         running = false,
         elapsed = 0,
@@ -124,6 +127,8 @@ local DEFAULTS = {
         projX = 180,
         projY = -80,
     },
+    characters = {},
+    trackerMigrated = false,
 }
 
 -- Runtime clocks (GetTime is session-local and MUST NOT be persisted)
@@ -157,7 +162,7 @@ ST.gather = {
     items = {},
     projected = false,
 }
-ST.reminder = { time = nil, set = false, lastFired = "" }
+ST.reminder = { time = nil, set = false, lastFired = "", message = nil }
 ST.notepadText = ""
 ST.notepadProjected = false
 ST.shopItems = {}
@@ -214,6 +219,271 @@ local function CopyShopItems(src)
         end
     end
     return out
+end
+
+function ST:CharacterKey()
+    if type(UnitGUID) ~= "function" then
+        return nil
+    end
+    local guid = UnitGUID("player")
+    if type(guid) ~= "string" or guid == "" or guid == "none" then
+        return nil
+    end
+    return guid
+end
+
+function ST:TrackerReady()
+    local guid = self:CharacterKey()
+    if not guid then
+        return true
+    end
+    return self.boundGuid == guid
+end
+
+function ST:EnsureCharacter(guid)
+    guid = guid or self:CharacterKey()
+    if not guid or not self.db then
+        return nil
+    end
+    self.db.characters = self.db.characters or {}
+    local bucket = self.db.characters[guid]
+    if type(bucket) ~= "table" then
+        bucket = {}
+        self.db.characters[guid] = bucket
+    end
+    if type(UnitName) == "function" then
+        local name, realm = UnitName("player")
+        if type(name) == "string" and name ~= "" then
+            bucket.name = name
+            bucket.realm = realm
+        end
+    end
+    return bucket
+end
+
+function ST:TrackerRoot()
+    if self.boundGuid and self.db and self.db.characters and type(self.db.characters[self.boundGuid]) == "table" then
+        return self.db.characters[self.boundGuid]
+    end
+    return self.db
+end
+
+function ST:ScopedListTable(optionKey, field)
+    if self.db.options and self.db.options[optionKey] and self.boundGuid then
+        local bucket = self:EnsureCharacter(self.boundGuid)
+        if bucket then
+            if type(bucket[field]) ~= "table" then
+                bucket[field] = {}
+            end
+            return bucket[field]
+        end
+    end
+    return self.db[field]
+end
+
+function ST:LoadScopedLists()
+    if not self.db then
+        return
+    end
+    local notes = self:ScopedListTable("notepadPerCharacter", "notepad")
+    self.notepadText = notes.text or ""
+    if self.notepadEditBox then
+        self.notepadEditBox:SetText(self.notepadText)
+    end
+    if self.UpdateNotepadProjected then
+        self:UpdateNotepadProjected()
+    end
+
+    local tasks = self:ScopedListTable("checklistPerCharacter", "checklist")
+    self.checklistItems = self:CopyChecklistItems(tasks.items)
+    if self.RefreshChecklistViews then
+        self:RefreshChecklistViews()
+    end
+
+    local places = self:ScopedListTable("locationsPerCharacter", "locations")
+    self.locationBookmarks = self:CopyLocationBookmarks(places.bookmarks)
+    self.selectedLocation = nil
+    if self.RefreshLocationList then
+        self:RefreshLocationList()
+    end
+end
+
+function ST:SetListScope(optionKey, perCharacter)
+    if not self.db or not self.db.options then
+        return
+    end
+    self:SaveDB()
+    self.db.options[optionKey] = perCharacter and true or false
+    self:LoadScopedLists()
+    self:SaveDB()
+    if self.UpdateOptionsDisplay then
+        self:UpdateOptionsDisplay()
+    end
+    local label = optionKey == "notepadPerCharacter" and "Notepad"
+        or (optionKey == "checklistPerCharacter" and "Checklist" or "Locations")
+    if perCharacter then
+        self:Print(label .. " now follows this character. The shared copy is kept.")
+    else
+        self:Print(label .. " is shared by every character again.")
+    end
+end
+
+function ST:BindCharacter()
+    local guid = self:CharacterKey()
+    if not guid or not self.db or self.boundGuid == guid then
+        return
+    end
+    if self.boundGuid then
+        self:SaveDB()
+    end
+    local inherit = not self.db.trackerMigrated
+    self.boundGuid = guid
+    self:EnsureCharacter(guid)
+    if inherit then
+        -- Whoever logs in first after this update keeps the old account session.
+        self:SaveDB()
+        self.db.trackerMigrated = true
+        self:LoadScopedLists()
+        self:Print("Saved sessions now follow each character. This character kept the previous session.")
+    else
+        self:ApplyTrackerRuntime(self.db.characters[guid])
+        self:LoadScopedLists()
+    end
+    if self.RefreshTicker then
+        self:RefreshTicker()
+    end
+end
+
+function ST:BeginGoldLoad()
+    if not self.gold then
+        return
+    end
+    self.gold.suppressZero = true
+    self.gold.zeroConfirm = nil
+    self.goldReconcileTries = 0
+    self.goldLoadEpoch = (self.goldLoadEpoch or 0) + 1
+end
+
+function ST:AcceptSettledGold()
+    local epoch = self.goldLoadEpoch
+    local function finish()
+        if self.goldLoadEpoch ~= epoch or not self.gold or not self.gold.suppressZero then
+            return
+        end
+        local money = self.RawMoney and self:RawMoney() or nil
+        if money == nil then
+            return
+        end
+        if money > 0 then
+            self.gold.suppressZero = false
+            self.gold.zeroConfirm = nil
+            self:ApplyMoneyValue(money)
+            return
+        end
+        if not self.gold.zeroConfirm then
+            self.gold.zeroConfirm = true
+            if C_Timer and C_Timer.After then
+                C_Timer.After(0.5, finish)
+                return
+            end
+        end
+        self.gold.suppressZero = false
+        self.gold.zeroConfirm = nil
+        self:ApplyMoneyValue(0)
+    end
+    finish()
+end
+
+function ST:ReconcileGold()
+    if not self.gold or not self.gold.running or not self.ReadableMoney then
+        return
+    end
+    local epoch = self.goldLoadEpoch
+    local money = self:ReadableMoney()
+    if money ~= nil then
+        self.goldReconcileTries = 0
+        self:ApplyMoneyValue(money)
+        return
+    end
+    if not self.gold.suppressZero then
+        return
+    end
+    self.goldReconcileTries = (self.goldReconcileTries or 0) + 1
+    if self.goldReconcileTries > 3 or not (C_Timer and C_Timer.After) then
+        self:AcceptSettledGold()
+        return
+    end
+    C_Timer.After(1, function()
+        if self.goldLoadEpoch ~= epoch or not self.gold.suppressZero then
+            return
+        end
+        self:ReconcileGold()
+    end)
+end
+
+function ST:OnPlayerEnteringWorld()
+    self:BindCharacter()
+    self:BeginGoldLoad()
+    self:ReconcileGold()
+    if self.AutoStartCombatLogging then
+        self:AutoStartCombatLogging()
+    end
+    if self.UpdateXPTracker then
+        self:UpdateXPTracker()
+    end
+    if self.UpdateGoldTracker then
+        self:UpdateGoldTracker()
+    end
+    if self.UpdateGatherTracker then
+        self:UpdateGatherTracker()
+    end
+    if self.RefreshShopList then
+        self:RefreshShopList()
+    end
+end
+
+function ST:InsertChatText(text)
+    if type(text) ~= "string" or text == "" then
+        return false
+    end
+    if type(ChatFrame_OpenChat) == "function" then
+        ChatFrame_OpenChat(text)
+        return true
+    end
+    local box = _G.ChatFrame1EditBox
+    if type(ChatEdit_GetActiveWindow) == "function" then
+        box = ChatEdit_GetActiveWindow() or box
+    end
+    if box and box.Insert then
+        if box.IsShown and not box:IsShown() and type(ChatEdit_ActivateChat) == "function" then
+            ChatEdit_ActivateChat(box)
+        end
+        box:Insert(text)
+        return true
+    end
+    self:Print(text)
+    return true
+end
+
+function ST:CreateListRow(parent, index, rowHeight)
+    local height = rowHeight or 22
+    local row = CreateFrame("Button", nil, parent)
+    row:SetHeight(height)
+    row:SetPoint("TOPLEFT", 0, -(index - 1) * height)
+    row:SetPoint("TOPRIGHT", 0, -(index - 1) * height)
+    if row.SetHighlightTexture then
+        row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+    end
+    row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.text:SetPoint("LEFT", 4, 0)
+    row.text:SetPoint("RIGHT", -4, 0)
+    if row.text.SetJustifyH then
+        row.text:SetJustifyH("LEFT")
+    end
+    if row.text.SetWordWrap then
+        row.text:SetWordWrap(false)
+    end
+    return row
 end
 
 function ST:IsSecret(value)
@@ -414,13 +684,15 @@ function ST:SaveDB()
 
     local db = self.db
     db.version = self.DB_VERSION
-    db.locations.bookmarks = self:CopyLocationBookmarks(self.locationBookmarks)
+    local places = self:ScopedListTable("locationsPerCharacter", "locations")
+    places.bookmarks = self:CopyLocationBookmarks(self.locationBookmarks)
     local breakTimer = self.breakTimer
     db.breakReminder.interval = breakTimer.interval
     db.breakReminder.snooze = breakTimer.snooze
     db.breakReminder.remaining = breakTimer.remaining
     db.breakReminder.running = breakTimer.running
     db.breakReminder.due = breakTimer.due
+    db.breakReminder.message = self.BreakMessage and self:BreakMessage() or breakTimer.message
     db.logging.projected = self.loggingProjected
     local logPoint, logRel, logX, logY = SnapshotPoint(self.loggingProjectedFrame, db.logging)
     db.logging.projPoint, db.logging.projRelativePoint = logPoint, logRel
@@ -429,7 +701,8 @@ function ST:SaveDB()
     local calcPoint, calcRel, calcX, calcY = SnapshotPoint(self.calculatorProjectedFrame, db.calculator)
     db.calculator.projPoint, db.calculator.projRelativePoint = calcPoint, calcRel
     db.calculator.projX, db.calculator.projY = calcX, calcY
-    db.checklist.items = self:CopyChecklistItems(self.checklistItems)
+    local tasks = self:ScopedListTable("checklistPerCharacter", "checklist")
+    tasks.items = self:CopyChecklistItems(self.checklistItems)
     db.checklist.projected = self.checklistProjected
     local taskPoint, taskRel, taskX, taskY = SnapshotPoint(self.checklistProjectedFrame, db.checklist)
     db.checklist.projPoint, db.checklist.projRelativePoint = taskPoint, taskRel
@@ -456,48 +729,61 @@ function ST:SaveDB()
 
     db.reminder.time = self.reminder.time
     db.reminder.set = self.reminder.set
+    db.reminder.message = self.reminder.message
 
-    local xpPoint, xpRel, xpX, xpY = SnapshotPoint(self.xpProjectedFrame, db.xp)
-    db.xp.running = self.xp.running
-    db.xp.elapsed = self.xp.elapsed
-    db.xp.startValue = self.xp.startValue
-    db.xp.maxAtStart = self.xp.maxAtStart
-    db.xp.gained = self.xp.gained
-    db.xp.kill = self.xp.kill or 0
-    db.xp.quest = self.xp.quest or 0
-    db.xp.projected = self.xp.projected
-    db.xp.projPoint = xpPoint
-    db.xp.projRelativePoint = xpRel
-    db.xp.projX = xpX
-    db.xp.projY = xpY
+    local track = self:TrackerRoot()
+    local function Dest(key)
+        if type(track[key]) ~= "table" then
+            track[key] = {}
+        end
+        return track[key]
+    end
 
-    local goldPoint, goldRel, goldX, goldY = SnapshotPoint(self.goldProjectedFrame, db.gold)
-    db.gold.running = self.gold.running
-    db.gold.elapsed = self.gold.elapsed
-    db.gold.startValue = self.gold.startValue
-    db.gold.gained = self.gold.gained
-    db.gold.projected = self.gold.projected
-    db.gold.projPoint = goldPoint
-    db.gold.projRelativePoint = goldRel
-    db.gold.projX = goldX
-    db.gold.projY = goldY
+    local xpSaved = Dest("xp")
+    local xpPoint, xpRel, xpX, xpY = SnapshotPoint(self.xpProjectedFrame, xpSaved.projPoint and xpSaved or db.xp)
+    xpSaved.running = self.xp.running
+    xpSaved.elapsed = self.xp.elapsed
+    xpSaved.startValue = self.xp.startValue
+    xpSaved.maxAtStart = self.xp.maxAtStart
+    xpSaved.gained = self.xp.gained
+    xpSaved.kill = self.xp.kill or 0
+    xpSaved.quest = self.xp.quest or 0
+    xpSaved.projected = self.xp.projected
+    xpSaved.projPoint = xpPoint
+    xpSaved.projRelativePoint = xpRel
+    xpSaved.projX = xpX
+    xpSaved.projY = xpY
 
-    local gatherPoint, gatherRel, gatherX, gatherY = SnapshotPoint(self.gatherProjectedFrame, db.gather)
-    db.gather.running = self.gather.running
-    db.gather.elapsed = self.gather.elapsed
-    db.gather.nodes = self.gather.nodes
-    db.gather.herbNodes = self.gather.herbNodes
-    db.gather.oreNodes = self.gather.oreNodes
-    db.gather.skinNodes = self.gather.skinNodes
-    db.gather.items = CopyItems(self.gather.items)
-    db.gather.projected = self.gather.projected
-    db.gather.projPoint = gatherPoint
-    db.gather.projRelativePoint = gatherRel
-    db.gather.projX = gatherX
-    db.gather.projY = gatherY
+    local goldSaved = Dest("gold")
+    local goldPoint, goldRel, goldX, goldY = SnapshotPoint(self.goldProjectedFrame, goldSaved.projPoint and goldSaved or db.gold)
+    goldSaved.running = self.gold.running
+    goldSaved.elapsed = self.gold.elapsed
+    goldSaved.startValue = self.gold.startValue
+    goldSaved.gained = self.gold.gained
+    goldSaved.projected = self.gold.projected
+    goldSaved.projPoint = goldPoint
+    goldSaved.projRelativePoint = goldRel
+    goldSaved.projX = goldX
+    goldSaved.projY = goldY
 
+    local gatherSaved = Dest("gather")
+    local gatherPoint, gatherRel, gatherX, gatherY = SnapshotPoint(self.gatherProjectedFrame, gatherSaved.projPoint and gatherSaved or db.gather)
+    gatherSaved.running = self.gather.running
+    gatherSaved.elapsed = self.gather.elapsed
+    gatherSaved.nodes = self.gather.nodes
+    gatherSaved.herbNodes = self.gather.herbNodes
+    gatherSaved.oreNodes = self.gather.oreNodes
+    gatherSaved.skinNodes = self.gather.skinNodes
+    gatherSaved.items = CopyItems(self.gather.items)
+    gatherSaved.projected = self.gather.projected
+    gatherSaved.projPoint = gatherPoint
+    gatherSaved.projRelativePoint = gatherRel
+    gatherSaved.projX = gatherX
+    gatherSaved.projY = gatherY
+
+    local notes = self:ScopedListTable("notepadPerCharacter", "notepad")
+    notes.text = self.notepadText or ""
     local notePoint, noteRel, noteX, noteY = SnapshotPoint(self.notepadProjectedFrame, db.notepad)
-    db.notepad.text = self.notepadText or ""
     db.notepad.projected = self.notepadProjected
     db.notepad.projPoint = notePoint
     db.notepad.projRelativePoint = noteRel
@@ -545,16 +831,123 @@ function ST:ScheduleSave()
     end)
 end
 
+function ST:ApplyTrackerRuntime(source)
+    source = source or {}
+    local xp = source.xp or {}
+    self.xp.running = xp.running or false
+    self.xp.elapsed = xp.elapsed or 0
+    self.xp.startValue = xp.startValue or 0
+    self.xp.maxAtStart = xp.maxAtStart or 1
+    self.xp.gained = xp.gained or 0
+    self.xp.kill = xp.kill or 0
+    self.xp.quest = xp.quest or 0
+    self.xp.projected = xp.projected and true or false
+    self.xp.shownRate = nil
+    self.xp.rateBucket = nil
+    self.xp.pendingKill = 0
+    self.xp.pendingQuest = 0
+    self.xp.unclassified = 0
+    if self.xp.running then
+        self.xp.anchor = GetTime()
+        if self.xpStartPauseButton then
+            self.xpStartPauseButton:SetText("Pause")
+        end
+    else
+        self.xp.anchor = 0
+        if self.xpStartPauseButton then
+            self.xpStartPauseButton:SetText(self.xp.elapsed > 0 and "Resume" or "Start")
+        end
+    end
+    if self.xpGainedDisplay then
+        self.xpGainedDisplay:SetText(tostring(self.xp.gained))
+    end
+    if self.RefreshXPSplit then
+        self:RefreshXPSplit()
+    end
+    if self.UpdateXPTracker then
+        self:UpdateXPTracker()
+    end
+    if self.xp.projected and self.ShowXPProjected then
+        self:ShowXPProjected(true, xp)
+    elseif self.xpProjectedFrame then
+        self.xpProjectedFrame:Hide()
+        if self.xpProjectButton then
+            self.xpProjectButton:SetText("Send to screen")
+        end
+    end
+
+    local gold = source.gold or {}
+    self.gold.running = gold.running or false
+    self.gold.elapsed = gold.elapsed or 0
+    self.gold.startValue = gold.startValue or 0
+    self.gold.gained = gold.gained or 0
+    self.gold.projected = gold.projected and true or false
+    self.gold.shownRate = nil
+    self.gold.rateBucket = nil
+    if self.gold.running then
+        self.gold.anchor = GetTime()
+        if self.goldStartPauseButton then
+            self.goldStartPauseButton:SetText("Pause")
+        end
+    else
+        self.gold.anchor = 0
+        if self.goldStartPauseButton then
+            self.goldStartPauseButton:SetText(self.gold.elapsed > 0 and "Resume" or "Start")
+        end
+    end
+    if self.UpdateGoldTracker then
+        self:UpdateGoldTracker()
+    end
+    if self.gold.projected and self.ShowGoldProjected then
+        self:ShowGoldProjected(true, gold)
+    elseif self.goldProjectedFrame then
+        self.goldProjectedFrame:Hide()
+        if self.goldProjectButton then
+            self.goldProjectButton:SetText("Send to screen")
+        end
+    end
+
+    local gather = source.gather or {}
+    self.gather.running = gather.running or false
+    self.gather.elapsed = gather.elapsed or 0
+    self.gather.nodes = gather.nodes or 0
+    self.gather.herbNodes = gather.herbNodes or 0
+    self.gather.oreNodes = gather.oreNodes or 0
+    self.gather.skinNodes = gather.skinNodes or 0
+    self.gather.items = CopyItems(gather.items)
+    self.gather.projected = gather.projected and true or false
+    self.gather.shownRate = nil
+    self.gather.rateBucket = nil
+    if self.gather.running then
+        self.gather.anchor = GetTime()
+        if self.gatherStartPauseButton then
+            self.gatherStartPauseButton:SetText("Pause")
+        end
+    else
+        self.gather.anchor = 0
+        if self.gatherStartPauseButton then
+            self.gatherStartPauseButton:SetText(self.gather.elapsed > 0 and "Resume" or "Start")
+        end
+    end
+    if self.UpdateGatherTracker then
+        self:UpdateGatherTracker()
+    end
+    if self.gather.projected and self.ShowGatherProjected then
+        self:ShowGatherProjected(true, gather)
+    elseif self.gatherProjectedFrame then
+        self.gatherProjectedFrame:Hide()
+        if self.gatherProjectButton then
+            self.gatherProjectButton:SetText("Send to screen")
+        end
+    end
+end
+
 function ST:LoadState()
     local db = self.db
     if not db then
         return
     end
-    self.locationBookmarks = self:CopyLocationBookmarks(db.locations.bookmarks)
-    self.selectedLocation = nil
-    self:RefreshLocationList()
-    self.checklistItems = self:CopyChecklistItems(db.checklist.items)
-    self:RefreshChecklistViews()
+    self:LoadScopedLists()
 
     self.timer.remaining = db.timer.remaining or 0
     self.timer.total = db.timer.total or 0
@@ -601,77 +994,19 @@ function ST:LoadState()
 
     self.reminder.time = db.reminder.time
     self.reminder.set = db.reminder.set
+    self.reminder.message = db.reminder.message
+    if self.reminderMessageInput and type(db.reminder.message) == "string" then
+        self.reminderMessageInput:SetText(db.reminder.message)
+    end
     if self.reminder.set and self.reminder.time and self.reminderStatus then
         self.reminderStatus:SetText("Alarm set for: " .. self.reminder.time)
     end
 
-    self.xp.running = db.xp.running or false
-    self.xp.elapsed = db.xp.elapsed or 0
-    self.xp.startValue = db.xp.startValue or 0
-    self.xp.maxAtStart = db.xp.maxAtStart or 1
-    self.xp.gained = db.xp.gained or 0
-    self.xp.kill = db.xp.kill or 0
-    self.xp.quest = db.xp.quest or 0
-    if self.xp.running then
-        self.xp.anchor = GetTime()
-        if self.xpStartPauseButton then
-            self.xpStartPauseButton:SetText("Pause")
-        end
-    elseif self.xp.elapsed > 0 and self.xpStartPauseButton then
-        self.xpStartPauseButton:SetText("Resume")
-    end
-    if self.xpGainedDisplay then
-        self.xpGainedDisplay:SetText(tostring(self.xp.gained))
-    end
-    self:UpdateXPTracker()
-    if db.xp.projected then
-        self:ShowXPProjected(true, db.xp)
+    if not db.trackerMigrated or not self:CharacterKey() then
+        self:ApplyTrackerRuntime(db)
     end
 
-    self.gold.running = db.gold.running or false
-    self.gold.elapsed = db.gold.elapsed or 0
-    self.gold.startValue = db.gold.startValue or 0
-    self.gold.gained = db.gold.gained or 0
-    if self.gold.running then
-        self.gold.anchor = GetTime()
-        if self.goldStartPauseButton then
-            self.goldStartPauseButton:SetText("Pause")
-        end
-    elseif self.gold.elapsed > 0 and self.goldStartPauseButton then
-        self.goldStartPauseButton:SetText("Resume")
-    end
-    self:UpdateGoldTracker()
-    if db.gold.projected then
-        self:ShowGoldProjected(true, db.gold)
-    end
-
-    self.gather.running = db.gather.running or false
-    self.gather.elapsed = db.gather.elapsed or 0
-    self.gather.nodes = db.gather.nodes or 0
-    self.gather.herbNodes = db.gather.herbNodes or 0
-    self.gather.oreNodes = db.gather.oreNodes or 0
-    self.gather.skinNodes = db.gather.skinNodes or 0
-    self.gather.items = CopyItems(db.gather.items)
-    if self.gather.running then
-        self.gather.anchor = GetTime()
-        if self.gatherStartPauseButton then
-            self.gatherStartPauseButton:SetText("Pause")
-        end
-    elseif self.gather.elapsed > 0 and self.gatherStartPauseButton then
-        self.gatherStartPauseButton:SetText("Resume")
-    end
-    if self.UpdateGatherTracker then
-        self:UpdateGatherTracker()
-    end
-    if db.gather.projected and self.ShowGatherProjected then
-        self:ShowGatherProjected(true, db.gather)
-    end
-
-    self.notepadText = db.notepad.text or ""
     self.notepadProjected = db.notepad.projected or false
-    if self.notepadEditBox then
-        self.notepadEditBox:SetText(self.notepadText)
-    end
     if self.notepadProjected and self.ShowNotepadProjected then
         self:ShowNotepadProjected(true, db.notepad)
     end
@@ -717,6 +1052,7 @@ function ST:LoadState()
     if db.logging.projected then self:ShowLoggingProjected(true, db.logging) end
     if db.calculator.projected then self:ShowCalculatorProjected(true, db.calculator) end
     if db.checklist.projected then self:ShowChecklistProjected(true, db.checklist) end
+    self:BindCharacter()
 end
 
 function ST:IsBusy()
@@ -808,21 +1144,7 @@ function ST:RegisterEvents()
         elseif event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" then
             self:OnXPUpdate()
         elseif event == "PLAYER_ENTERING_WORLD" then
-            self:AutoStartCombatLogging()
-            if self.gold.running then
-                local money = self:PlainNumber(GetMoney())
-                if money then
-                    self.gold.startValue = money
-                end
-            end
-            self:UpdateXPTracker()
-            self:UpdateGoldTracker()
-            if self.UpdateGatherTracker then
-                self:UpdateGatherTracker()
-            end
-            if self.RefreshShopList then
-                self:RefreshShopList()
-            end
+            self:OnPlayerEnteringWorld()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             if self.OnGatherSpell then
                 self:OnGatherSpell(...)

@@ -248,7 +248,7 @@ function ST:GatherElapsed()
 end
 
 function ST:OnGatherSpell(unit, _, spellID)
-    if not self.gather.running then
+    if not self.gather.running or not self:TrackerReady() then
         return
     end
     if unit ~= "player" then
@@ -270,8 +270,37 @@ function ST:OnGatherSpell(unit, _, spellID)
     self:ScheduleSave()
 end
 
+function ST:IsOwnGatherLoot(text)
+    if type(text) ~= "string" then
+        return false
+    end
+    local keys = {
+        "LOOT_ITEM_SELF",
+        "LOOT_ITEM_SELF_MULTIPLE",
+        "LOOT_ITEM_CREATED_SELF",
+        "LOOT_ITEM_CREATED_SELF_MULTIPLE",
+        "LOOT_ITEM_PUSHED_SELF",
+        "LOOT_ITEM_PUSHED_SELF_MULTIPLE",
+    }
+    for _, key in ipairs(keys) do
+        local pattern = _G[key]
+        if type(pattern) == "string" then
+            local prefix = pattern:match("^(.-)%%")
+            if prefix and prefix ~= "" and string.find(text, prefix, 1, true) then
+                return true
+            end
+        end
+    end
+    return string.find(text, "You receive loot:", 1, true)
+        or string.find(text, "You receive item:", 1, true)
+        or string.find(text, "You create:", 1, true)
+end
+
 function ST:OnGatherLoot(text)
-    if not self.gather.running then
+    if not self.gather.running or not self:TrackerReady() then
+        return
+    end
+    if not self:IsOwnGatherLoot(text) then
         return
     end
     if type(text) ~= "string" then
@@ -351,10 +380,7 @@ function ST:UpdateGatherTracker()
     )
     self.gatherKindsDisplay:SetText(kinds)
 
-    local rate = 0
-    if elapsed > 0 then
-        rate = math.floor((nodes / elapsed) * 3600)
-    end
+    local rate = self:HeldRate(self.gather, elapsed, nodes)
     local rateText = "Nodes/hr " .. tostring(rate)
     self.gatherPerHourDisplay:SetText(rateText)
 

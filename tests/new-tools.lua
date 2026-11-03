@@ -64,7 +64,7 @@ for line in io.lines('SimpleTools.toc') do
     local file=line:match('^%s*(.-)%s*$')
     if file:match('%.lua$') then assert(loadfile(file))('SimpleTools',ST); count=count+1 end
 end
-equal(count,15)
+equal(count,16)
 -- Build the actual main frame and the two new panels; stub only old tab constructors.
 for _,name in ipairs({'CreateTimeTab','CreateXPGoldTab','CreateSimpleGatherUI','CreateSimpleNotepadUI','CreateSimpleShopUI','CreateLoggingUI','CreateCalculatorUI','CreateChecklistUI'}) do
     ST[name]=function() return widget() end
@@ -73,18 +73,31 @@ ST:InitDB()
 ST.db.options.chat=false
 ST:CreateMainFrame()
 ST:LoadState()
-equal(#ST.tabFrames,10)
+equal(#ST.tabFrames,11)
+equal(#ST.groupButtons,4)
 equal(ST.locationMapButton.enabled,false)
 equal(ST.breakSnoozeButton.enabled,false)
--- Tabs fit on one row even at the minimum frame width.
+-- Group row and the active tool row both fit at the minimum frame width.
 ST.frame:SetWidth(480)
 ST:LayoutTabButtons()
 local right=0
-for _,button in ipairs(ST.tabButtons) do
-    assert(button.point[5] == -30 or button.point[5] == -51); checks=checks+1
+for _,button in ipairs(ST.groupButtons) do
+    assert(button.shown); checks=checks+1
+    assert(button.point[5] == -30); checks=checks+1
     right=math.max(right,button.point[4]+button.width)
 end
 assert(right <= 480); checks=checks+1
+local shownTools, toolRight = 0, 0
+for _,button in ipairs(ST.tabButtons) do
+    if button.shown then
+        shownTools=shownTools+1
+        assert(button.point[5] == -51); checks=checks+1
+        toolRight=math.max(toolRight,button.point[4]+button.width)
+    end
+end
+equal(shownTools,2)
+assert(toolRight <= 480); checks=checks+1
+assert(ST.tabButtons[5].shown == false); checks=checks+1
 ST:SelectTab(6)
 equal(ST.db.ui.selectedTab,6)
 ST:SelectTab(7)

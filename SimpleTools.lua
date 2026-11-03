@@ -3,18 +3,43 @@ local addonName, ST = ...
 local GetTime = GetTime
 local CreateFrame = CreateFrame
 
-local TABS = {
-    { key = "time",    label = "Time",     width = 56 },
-    { key = "xp",      label = "XP/Gold",  width = 72 },
-    { key = "gather",  label = "Gather",   width = 62 },
-    { key = "notepad", label = "Notepad",  width = 70 },
-    { key = "shop",    label = "Shop",     width = 50 },
-    { key = "locations", label = "Locations", width = 76 },
-    { key = "break",   label = "Break",    width = 56 },
-    { key = "logs",    label = "Logs",     width = 50 },
-    { key = "calculator", label = "Calc",  width = 50 },
-    { key = "checklist", label = "Checklist", width = 76 },
+local GROUPS = {
+    { key = "time", label = "Time", width = 64 },
+    { key = "track", label = "Track", width = 64 },
+    { key = "lists", label = "Lists", width = 64 },
+    { key = "utility", label = "Utility", width = 72 },
 }
+
+local TOOLS = {
+    { id = 1, group = "time", label = "Clocks", width = 62 },
+    { id = 7, group = "time", label = "Break", width = 56 },
+    { id = 2, group = "track", label = "XP/Gold", width = 72 },
+    { id = 3, group = "track", label = "Gather", width = 62 },
+    { id = 4, group = "lists", label = "Notepad", width = 70 },
+    { id = 5, group = "lists", label = "Shop", width = 52 },
+    { id = 10, group = "lists", label = "Checklist", width = 76 },
+    { id = 6, group = "lists", label = "Locations", width = 76 },
+    { id = 9, group = "utility", label = "Calc", width = 50 },
+    { id = 8, group = "utility", label = "Logs", width = 50 },
+    { id = 11, group = "utility", label = "Options", width = 68 },
+}
+
+local TOOL_GROUP = {}
+for _, tool in ipairs(TOOLS) do
+    TOOL_GROUP[tool.id] = tool.group
+end
+
+local function StyleToolButton(btn, label, width)
+    btn.naturalWidth = width
+    btn:SetSize(width, 18)
+    if btn.SetNormalFontObject then
+        btn:SetNormalFontObject("GameFontNormalSmall")
+    end
+    if btn.Text and btn.Text.SetFontObject then
+        btn.Text:SetFontObject("GameFontNormalSmall")
+    end
+    btn:SetText(label)
+end
 
 function ST:CreateMainFrame()
     local frame = self:CreateThemedPanel("SimpleToolsFrame")
@@ -51,24 +76,36 @@ function ST:CreateMainFrame()
             end
         end)
     end)
+    self.groupButtons = {}
     self.tabButtons = {}
     self.tabFrames = {}
 
-    for i, tab in ipairs(TABS) do
+    for _, group in ipairs(GROUPS) do
         local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
-        btn.naturalWidth = tab.width
-        btn:SetSize(tab.width, 18)
-        if btn.SetNormalFontObject then
-            btn:SetNormalFontObject("GameFontNormalSmall")
-        end
-        if btn.Text and btn.Text.SetFontObject then
-            btn.Text:SetFontObject("GameFontNormalSmall")
-        end
-        btn:SetText(tab.label)
+        StyleToolButton(btn, group.label, group.width)
+        btn.groupKey = group.key
         btn:SetScript("OnClick", function()
-            self:SelectTab(i)
+            if ST.activeGroup == group.key then
+                return
+            end
+            for _, tool in ipairs(TOOLS) do
+                if tool.group == group.key then
+                    ST:SelectTab(tool.id)
+                    return
+                end
+            end
         end)
-        self.tabButtons[i] = btn
+        self.groupButtons[#self.groupButtons + 1] = btn
+    end
+
+    for _, tool in ipairs(TOOLS) do
+        local btn = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+        StyleToolButton(btn, tool.label, tool.width)
+        btn.groupKey = tool.group
+        btn:SetScript("OnClick", function()
+            self:SelectTab(tool.id)
+        end)
+        self.tabButtons[tool.id] = btn
     end
 
     self.contentFrame = CreateFrame("Frame", nil, frame)
@@ -86,6 +123,7 @@ function ST:CreateMainFrame()
     self.tabFrames[8] = self:CreateLoggingUI(self.contentFrame)
     self.tabFrames[9] = self:CreateCalculatorUI(self.contentFrame)
     self.tabFrames[10] = self:CreateChecklistUI(self.contentFrame)
+    self.tabFrames[11] = self:CreateOptionsUI(self.contentFrame)
 
     self.timerFrame = self.tabFrames[1]
     self.simpleXPFrame = self.tabFrames[2]
@@ -99,92 +137,49 @@ end
 
 function ST:LayoutTabButtons()
     local frame = self.frame
-    local buttons = self.tabButtons
-    if not frame or not buttons or #buttons == 0 then
+    local groups = self.groupButtons
+    local tools = self.tabButtons
+    if not frame or not groups or not tools then
         return
     end
-    local frameWidth = frame:GetWidth() or ST.FRAME_W
-    local inner = math.max(200, frameWidth - 32)
-    local gap, height, rowGap, top = 2, 18, 3, 30
-    local minW = 48
-    local n = #buttons
-    local natural, total = {}, 0
-    for i, btn in ipairs(buttons) do
-        natural[i] = btn.naturalWidth or 50
-        total = total + natural[i]
-        if i > 1 then
-            total = total + gap
+    local active = self.activeGroup or "time"
+    for _, btn in ipairs(tools) do
+        if btn.groupKey == active then
+            btn:Show()
+        else
+            btn:Hide()
         end
     end
-    local minTotal = n * minW + math.max(0, n - 1) * gap
-    local rows = 1
-    local y = -top
 
-    if total <= inner or minTotal <= inner then
-        local usable = math.min(inner, math.max(total, minTotal))
-        if total > inner then
-            usable = inner
-        end
-        local extraWidth = total - minTotal
-        local spare = usable - minTotal
-        local widths, used = {}, 0
-        for i = 1, n do
-            local w = natural[i]
-            if total > inner then
-                w = minW + math.floor(spare * math.max(0, natural[i] - minW) / math.max(1, extraWidth))
+    local function place(buttons, y)
+        local frameWidth = frame:GetWidth() or ST.FRAME_W
+        local gap, height = 4, 18
+        local visible, total = {}, 0
+        for _, btn in ipairs(buttons) do
+            if not btn.IsShown or btn:IsShown() then
+                visible[#visible + 1] = btn
+                total = total + (btn.naturalWidth or btn:GetWidth() or 50)
             end
-            widths[i] = w
-            used = used + w
         end
-        used = used + math.max(0, n - 1) * gap
-        if used > usable and n > 0 then
-            widths[n] = math.max(minW, widths[n] - (used - usable))
-            used = usable
+        if #visible == 0 then
+            return
         end
-        local x = (frameWidth - used) / 2
-        for i, btn in ipairs(buttons) do
-            btn:SetSize(widths[i], height)
+        total = total + gap * (#visible - 1)
+        local x = math.max(8, (frameWidth - total) / 2)
+        for _, btn in ipairs(visible) do
+            local width = btn.naturalWidth or btn:GetWidth() or 50
+            btn:SetSize(width, height)
             btn:ClearAllPoints()
             btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
-            x = x + widths[i] + gap
-        end
-        rows = 1
-    else
-        local i = 1
-        rows = 0
-        while i <= n do
-            local rowWidth, count = 0, 0
-            for j = i, n do
-                local w = math.max(minW, natural[j])
-                local nextWidth = count == 0 and w or (rowWidth + gap + w)
-                if count > 0 and nextWidth > inner then
-                    break
-                end
-                rowWidth = nextWidth
-                count = count + 1
-            end
-            if count < 1 then
-                count = 1
-                rowWidth = math.max(minW, natural[i])
-            end
-            local x = (frameWidth - rowWidth) / 2
-            for k = 0, count - 1 do
-                local btn = buttons[i + k]
-                local w = math.max(minW, natural[i + k])
-                btn:SetSize(w, height)
-                btn:ClearAllPoints()
-                btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
-                x = x + w + gap
-            end
-            i = i + count
-            rows = rows + 1
-            y = y - height - rowGap
+            x = x + width + gap
         end
     end
+
+    place(groups, -30)
+    place(tools, -51)
     if self.contentFrame then
-        local inset = top + rows * (height + rowGap) + 2
         self.contentFrame:ClearAllPoints()
-        self.contentFrame:SetPoint("TOPLEFT", 10, -inset)
+        self.contentFrame:SetPoint("TOPLEFT", 10, -76)
         self.contentFrame:SetPoint("BOTTOMRIGHT", -10, 8)
     end
 end
@@ -200,19 +195,108 @@ function ST:OnMainFrameSizeChanged()
 end
 
 function ST:SelectTab(id)
+    if not self.tabFrames or not self.tabFrames[id] then
+        id = 1
+    end
+    self.activeGroup = TOOL_GROUP[id] or "time"
     for i, tabFrame in ipairs(self.tabFrames) do
         if i == id then
             tabFrame:Show()
-            self.tabButtons[i]:Disable()
         else
             tabFrame:Hide()
-            self.tabButtons[i]:Enable()
+        end
+    end
+    for _, btn in ipairs(self.groupButtons or {}) do
+        if btn.groupKey == self.activeGroup then
+            btn:Disable()
+        else
+            btn:Enable()
+        end
+    end
+    for i, btn in ipairs(self.tabButtons or {}) do
+        if i == id then
+            btn:Disable()
+        else
+            btn:Enable()
         end
     end
     if self.db and self.db.ui then
         self.db.ui.selectedTab = id
     end
+    if self.LayoutTabButtons then
+        self:LayoutTabButtons()
+    end
+    if id == 5 and self.HookShopClicks then
+        self:HookShopClicks()
+    end
+    if id == 11 and self.UpdateOptionsDisplay then
+        self:UpdateOptionsDisplay()
+    end
     self:RefreshTicker()
+end
+
+function ST:ToggleOption(key)
+    if not self.db or not self.db.options then
+        return
+    end
+    self.db.options[key] = self.db.options[key] == false
+    self:SaveDB()
+    if self.UpdateOptionsDisplay then
+        self:UpdateOptionsDisplay()
+    end
+end
+
+function ST:UpdateOptionsDisplay()
+    if not self.optionsSoundButton or not self.db or not self.db.options then
+        return
+    end
+    local options = self.db.options
+    self.optionsSoundButton:SetText(options.sound == false and "Alert sounds: Off" or "Alert sounds: On")
+    self.optionsChatButton:SetText(options.chat == false and "Chat messages: Off" or "Chat messages: On")
+    self.optionsNotepadButton:SetText(options.notepadPerCharacter and "Notepad: This character" or "Notepad: Shared")
+    self.optionsChecklistButton:SetText(options.checklistPerCharacter and "Checklist: This character" or "Checklist: Shared")
+    self.optionsLocationsButton:SetText(options.locationsPerCharacter and "Locations: This character" or "Locations: Shared")
+end
+
+function ST:CreateOptionsUI(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetAllPoints()
+    local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    hint:SetPoint("TOPLEFT", 12, -4)
+    hint:SetPoint("TOPRIGHT", -12, -4)
+    if hint.SetJustifyH then
+        hint:SetJustifyH("LEFT")
+    end
+    if hint.SetWordWrap then
+        hint:SetWordWrap(true)
+    end
+    hint:SetText("XP, gold, and gather sessions always follow this character. Shared lists stay shared until you switch them.")
+
+    local function optionButton(y, onClick)
+        local button = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+        button:SetSize(240, 20)
+        button:SetPoint("TOP", 0, y)
+        button:SetScript("OnClick", onClick)
+        return button
+    end
+
+    self.optionsSoundButton = optionButton(-28, function()
+        ST:ToggleOption("sound")
+    end)
+    self.optionsChatButton = optionButton(-50, function()
+        ST:ToggleOption("chat")
+    end)
+    self.optionsNotepadButton = optionButton(-78, function()
+        ST:SetListScope("notepadPerCharacter", not ST.db.options.notepadPerCharacter)
+    end)
+    self.optionsChecklistButton = optionButton(-100, function()
+        ST:SetListScope("checklistPerCharacter", not ST.db.options.checklistPerCharacter)
+    end)
+    self.optionsLocationsButton = optionButton(-122, function()
+        ST:SetListScope("locationsPerCharacter", not ST.db.options.locationsPerCharacter)
+    end)
+    self:UpdateOptionsDisplay()
+    return frame
 end
 
 function ST:CreateTimeTab(parent)
@@ -420,7 +504,19 @@ function ST:RegisterSlash()
     SlashCmdList["SIMPLETOOLS"] = function(msg)
         msg = strtrim(strlower(msg or ""))
         if msg == "options" or msg == "config" or msg == "settings" then
-            self:OpenSettings()
+            if self.frame and not self.frame:IsShown() then
+                self.frame:Show()
+            end
+            self:SelectTab(11)
+        elseif msg == "sound" then
+            self:ToggleOption("sound")
+            self:Print("Alert sounds " .. (self.db.options.sound == false and "off." or "on."))
+        elseif msg == "chat" then
+            local enabling = self.db.options.chat == false
+            self:ToggleOption("chat")
+            if enabling then
+                self:Print("Chat messages on.")
+            end
         elseif msg == "resetpos" then
             self.frame:ClearAllPoints()
             self.frame:SetPoint("CENTER")

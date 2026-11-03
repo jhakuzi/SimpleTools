@@ -14,6 +14,21 @@ function ST:BreakRemaining()
     return math.max(0, timer.remaining - (timer.running and (GetTime() - timer.anchor) or 0))
 end
 
+function ST:BreakMessage()
+    local text = self.breakTimer.message or ""
+    if self.breakMessageInput then
+        local typed = strtrim(self.breakMessageInput:GetText() or "")
+        if typed ~= "" then
+            text = typed
+        end
+    end
+    if text == "" then
+        text = BREAK_MESSAGE
+    end
+    self.breakTimer.message = text
+    return text
+end
+
 function ST:LoadBreakState(saved)
     local timer = self.breakTimer
     timer.interval = Minutes(saved.interval, 60)
@@ -23,8 +38,12 @@ function ST:LoadBreakState(saved)
     timer.due = saved.due == true
     timer.running = saved.running == true and not timer.due
     timer.anchor = GetTime()
+    timer.message = type(saved.message) == "string" and saved.message or ""
     if self.breakIntervalInput then self.breakIntervalInput:SetText(tostring(timer.interval)) end
     if self.breakSnoozeInput then self.breakSnoozeInput:SetText(tostring(timer.snooze)) end
+    if self.breakMessageInput and not (self.breakMessageInput.HasFocus and self.breakMessageInput:HasFocus()) then
+        self.breakMessageInput:SetText(timer.message ~= "" and timer.message or BREAK_MESSAGE)
+    end
     self:UpdateBreakDisplay()
     if timer.due then self:ShowBreakAlert() end
 end
@@ -52,7 +71,7 @@ function ST:StartBreakReminder(snooze)
     self:SaveDB()
     self:RefreshTicker()
     self:UpdateBreakDisplay()
-    self:Print("Next break in " .. self:FormatTime(remaining) .. ". " .. BREAK_MESSAGE)
+    self:Print("Next break in " .. self:FormatTime(remaining) .. ". " .. self:BreakMessage())
     return true
 end
 
@@ -84,7 +103,7 @@ function ST:CheckBreakReminder()
         timer.remaining, timer.running, timer.due = 0, false, true
         self:ShowBreakAlert()
         self:PlayAlert()
-        self:Print(BREAK_MESSAGE)
+        self:Print(self:BreakMessage())
         self:SaveDB()
         self:RefreshTicker()
     end
@@ -122,7 +141,7 @@ function ST:ShowBreakAlert()
         hint:SetPoint("TOPRIGHT", -12, -34)
         hint:SetJustifyH("CENTER")
         hint:SetWordWrap(true)
-        hint:SetText(BREAK_MESSAGE)
+        frame.hint = hint
         local snooze = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
         snooze:SetText("Snooze")
         snooze:SetScript("OnClick", function() ST:StartBreakReminder(true) end)
@@ -131,6 +150,9 @@ function ST:ShowBreakAlert()
         nextBreak:SetScript("OnClick", function() ST:StartBreakReminder() end)
         self:LayoutBottomPair(frame, snooze, nextBreak)
         self.breakAlertFrame = frame
+    end
+    if self.breakAlertFrame.hint then
+        self.breakAlertFrame.hint:SetText(self:BreakMessage())
     end
     self.breakAlertFrame:Show()
 end
@@ -155,9 +177,18 @@ function ST:CreateBreakUI(parent)
     end
     self.breakIntervalInput = input("Every (minutes)", -85, 60)
     self.breakSnoozeInput = input("Snooze (minutes)", 85, 5)
+    self.breakMessageInput = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
+    self.breakMessageInput:SetHeight(20)
+    self.breakMessageInput:SetPoint("TOPLEFT", 16, -58)
+    self.breakMessageInput:SetPoint("TOPRIGHT", -16, -58)
+    self.breakMessageInput:SetAutoFocus(false)
+    self.breakMessageInput:SetMaxLetters(120)
+    self.breakMessageInput:SetText(BREAK_MESSAGE)
+    self.breakMessageInput:SetScript("OnEnterPressed", function(selfBox) selfBox:ClearFocus() end)
+    self.breakMessageInput:SetScript("OnEscapePressed", function(selfBox) selfBox:ClearFocus() end)
     self.breakStatus = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    self.breakStatus:SetPoint("TOPLEFT", 8, -64)
-    self.breakStatus:SetPoint("TOPRIGHT", -8, -64)
+    self.breakStatus:SetPoint("TOPLEFT", 8, -86)
+    self.breakStatus:SetPoint("TOPRIGHT", -8, -86)
     self.breakStatus:SetJustifyH("CENTER")
     self.breakStartButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.breakStartButton:SetScript("OnClick", function() ST:ToggleBreakReminder() end)

@@ -65,6 +65,22 @@ function ST:RemoveSelectedLocation()
     end
 end
 
+function ST:LinkSelectedLocation()
+    local entry = self.selectedLocation
+    if not entry then
+        return false
+    end
+    local text = string.format("%s (%.1f, %.1f)", entry.zone, entry.x * 100, entry.y * 100)
+    if type(entry.name) == "string" and entry.name ~= "" and entry.name ~= entry.zone then
+        text = entry.name .. " — " .. text
+    end
+    self:InsertChatText(text)
+    if self.locationStatus then
+        self.locationStatus:SetText("Linked in chat: " .. text)
+    end
+    return true
+end
+
 function ST:ShowSelectedLocation()
     local entry = self.selectedLocation
     if not entry then return false end
@@ -102,16 +118,7 @@ function ST:RefreshLocationList()
         local entry = list[i]
         if entry then
             if not row then
-                row = CreateFrame("Button", nil, self.locationListChild)
-                row:SetHeight(22)
-                row:SetPoint("TOPLEFT", 0, -(i - 1) * 22)
-                row:SetPoint("TOPRIGHT", 0, -(i - 1) * 22)
-                row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-                row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-                row.text:SetPoint("LEFT", 4, 0)
-                row.text:SetPoint("RIGHT", -4, 0)
-                row.text:SetJustifyH("LEFT")
-                row.text:SetWordWrap(false)
+                row = ST:CreateListRow(self.locationListChild, i, 22)
                 row:SetScript("OnClick", function(selfRow)
                     ST.selectedLocation = selfRow.entry
                     ST:RefreshLocationList()
@@ -133,8 +140,12 @@ function ST:RefreshLocationList()
     end
     self.locationEmpty:SetShown(#list == 0)
     self.locationListChild:SetHeight(math.max(20, #list * 22))
-    self.locationMapButton:SetEnabled(self.selectedLocation ~= nil)
-    self.locationRemoveButton:SetEnabled(self.selectedLocation ~= nil)
+    local selected = self.selectedLocation ~= nil
+    self.locationMapButton:SetEnabled(selected)
+    self.locationRemoveButton:SetEnabled(selected)
+    if self.locationLinkButton then
+        self.locationLinkButton:SetEnabled(selected)
+    end
 end
 
 function ST:CreateLocationsUI(parent)
@@ -190,10 +201,13 @@ function ST:CreateLocationsUI(parent)
     self.locationMapButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.locationMapButton:SetText("Show on map")
     self.locationMapButton:SetScript("OnClick", function() ST:ShowSelectedLocation() end)
+    self.locationLinkButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
+    self.locationLinkButton:SetText("Link")
+    self.locationLinkButton:SetScript("OnClick", function() ST:LinkSelectedLocation() end)
     self.locationRemoveButton = CreateFrame("Button", nil, frame, "GameMenuButtonTemplate")
     self.locationRemoveButton:SetText("Remove")
     self.locationRemoveButton:SetScript("OnClick", function() ST:RemoveSelectedLocation() end)
-    self:LayoutBottomPair(frame, self.locationMapButton, self.locationRemoveButton)
+    self:LayoutTrackerButtons(frame, self.locationLinkButton, self.locationMapButton, self.locationRemoveButton)
     self:RefreshLocationList()
     return frame
 end
