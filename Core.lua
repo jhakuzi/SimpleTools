@@ -1242,6 +1242,48 @@ function ST:CreateThemedPanel(name, parent)
     return frame
 end
 
+-- DefaultPanelTemplate supplies the Forever bronze frame chrome, including
+-- its own opaque rock-textured fill. Replace only that interior texture so
+-- the nine-slice border and the rest of the template remain untouched.
+function ST:ApplyMainPanelBackground(frame)
+    local background = frame and frame.Bg
+    local inset = frame and frame.Inset
+    local insetBackground
+    if type(inset) == "table" or type(inset) == "userdata" then
+        insetBackground = inset.Bg
+    end
+    local isRegion = type(background) == "table" or type(background) == "userdata"
+    local insetHasBackground = type(insetBackground) == "table" or type(insetBackground) == "userdata"
+    if not isRegion and insetHasBackground then
+        background = insetBackground
+        isRegion = true
+    end
+    if isRegion and background.SetColorTexture then
+        background:SetColorTexture(0.06, 0.045, 0.03, 0.90)
+        if insetHasBackground and insetBackground ~= background then
+            insetBackground:Hide()
+        end
+        if frame.TopTileStreaks then
+            frame.TopTileStreaks:Hide()
+        end
+        return
+    end
+
+    -- The plain BackdropTemplate fallback has no Bg texture region. Use a
+    -- flat texture there, keeping the same thin bronze overlay border.
+    if frame and frame.SetBackdrop then
+        frame:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8X8",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = false,
+            edgeSize = 12,
+            insets = { left = 3, right = 3, top = 3, bottom = 3 },
+        })
+        frame:SetBackdropColor(0.06, 0.045, 0.03, 0.90)
+        frame:SetBackdropBorderColor(0.78, 0.58, 0.28, 0.95)
+    end
+end
+
 function ST:SetPanelTitle(frame, text)
     if not frame then
         return

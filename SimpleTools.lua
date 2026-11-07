@@ -44,6 +44,7 @@ end
 function ST:CreateMainFrame()
     local frame = self:CreateThemedPanel("SimpleToolsFrame")
     self.frame = frame
+    self:ApplyMainPanelBackground(frame)
     self:ApplyMainFrameSize(ST.FRAME_W, ST.FRAME_H)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
